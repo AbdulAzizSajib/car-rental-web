@@ -10,8 +10,24 @@ export interface Car {
   distance: number;
   distanceUnit: string;
   transmission: 'Automatic' | 'Manual';
-  fuelType: 'Gasoline' | 'Diesel' | 'Electric' | 'Hybrid';
-  bodyType: 'Sedan' | 'Coupe' | 'Hatchback' | 'Pickup' | 'Crossover' | 'SUV' | 'Van' | 'Wagon' | 'Sport coupe';
+  fuelType:
+    | 'Gasoline'
+    | 'Diesel'
+    | 'Electric'
+    | 'Hybrid'
+    | 'Flex Fuel (E85)'
+    | 'Hydrogen'
+    | 'Other';
+  bodyType:
+    | 'Sedan'
+    | 'Coupe'
+    | 'Hatchback'
+    | 'Pickup'
+    | 'Crossover'
+    | 'SUV'
+    | 'Van'
+    | 'Wagon'
+    | 'Sport coupe';
   passengers: number;
   power: number;
   powerUnit: string;
