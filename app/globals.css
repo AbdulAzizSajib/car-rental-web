@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -85,8 +85,10 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-bangla), 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans:
+    var(--font-epilogue), var(--font-bangla), "Geist", "Geist Fallback",
+    sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback";
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
   --color-brand-soft: var(--brand-soft);

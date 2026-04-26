@@ -1,8 +1,14 @@
 import type { Metadata } from 'next';
-import { Hind_Siliguri } from 'next/font/google';
+import { Epilogue, Hind_Siliguri, Bebas_Neue } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import { LayoutShell } from '@/components/layout-shell';
 import './globals.css';
+
+const epilogue = Epilogue({
+  subsets: ['latin'],
+  variable: '--font-epilogue',
+  display: 'swap',
+});
 
 const bangla = Hind_Siliguri({
   subsets: ['bengali', 'latin'],
@@ -11,10 +17,21 @@ const bangla = Hind_Siliguri({
   display: 'swap',
 });
 
+
+const bebasNeue = Bebas_Neue({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-bebas-neue',
+  display: 'swap',
+});
+
+  
+
+
 export const metadata: Metadata = {
-  title: 'অটো আলটিমেট - প্রিমিয়াম কার রেন্টাল',
+  title: 'Auto Ultimate - Premium Car Rental',
   description:
-    'সান ফ্রান্সিসকোতে প্রিমিয়াম গাড়ি ভাড়া করুন। আপনার প্রয়োজন অনুযায়ী সেরা গাড়ি বেছে নিন।',
+    'Rent premium cars in San Francisco. Choose the best vehicle for your needs.',
   icons: {
     icon: [
       { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
@@ -29,8 +46,8 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="bn" className="scroll-smooth">
-      <body className={`${bangla.variable} font-sans antialiased bg-gray-50`}>
+    <html lang="en" className="scroll-smooth">
+      <body className={`${epilogue.variable} ${bangla.variable} ${bebasNeue.variable} font-sans antialiased bg-gray-50`}>
         <LayoutShell>{children}</LayoutShell>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

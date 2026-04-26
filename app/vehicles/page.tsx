@@ -43,24 +43,27 @@ export default function VehiclesPage() {
   return (
     <div className="flex">
       {/* Filter Sidebar */}
-      <aside className="hidden lg:block w-80 shrink-0 bg-white border-r border-gray-200 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto">
+      <aside className="hidden lg:block w-80 shrink-0 bg-white sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto"
+        style={{ borderRight: '1px solid #ede8df' }}>
         <FilterSidebar onFilterChange={setFilters} />
       </aside>
 
       {/* Main Vehicle area */}
-      <section className="flex-1 bg-gray-50">
-        <div className="px-6 py-5 flex items-center justify-between">
+      <section className="flex-1" style={{ background: '#faf8f4' }}>
+        <div className="px-6 py-5 flex items-center justify-between bg-white"
+          style={{ borderBottom: '1px solid #ede8df' }}>
           <h1 className="text-lg font-semibold text-gray-900">
             48 vehicles to rent
           </h1>
           <div className="flex items-center gap-4 text-sm">
-            <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
+            <button className="flex items-center gap-1 text-gray-500 hover:text-gray-900 transition-colors">
               Closest to me
               <ChevronDown size={14} />
             </button>
             <button
               onClick={() => setShowMap((s) => !s)}
-              className="flex items-center gap-1 text-gray-600 hover:text-gray-900"
+              className="flex items-center gap-1 font-medium transition-colors"
+              style={{ color: '#c9a84c' }}
             >
               {showMap ? 'Hide map' : 'Show map'}
               <MapIcon size={14} />
@@ -69,7 +72,7 @@ export default function VehiclesPage() {
         </div>
 
         <div className="flex">
-          <div className="flex-1 px-6 pb-8">
+          <div className="flex-1 px-6 pb-8 pt-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {filteredCars.map((car) => (
                 <VehicleCard
@@ -83,7 +86,7 @@ export default function VehiclesPage() {
             </div>
             {filteredCars.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-gray-600">
+                <p className="text-gray-500">
                   No vehicles match your filters. Try adjusting your search criteria.
                 </p>
               </div>
@@ -91,10 +94,11 @@ export default function VehiclesPage() {
           </div>
 
           {showMap && (
-            <div className="hidden xl:flex w-96 shrink-0 bg-gray-100 border-l border-gray-200 items-center justify-center text-gray-500">
+            <div className="hidden xl:flex w-96 shrink-0 items-center justify-center"
+              style={{ background: '#fdf9f0', borderLeft: '1px solid #ede8df' }}>
               <div className="text-center">
-                <p className="text-base font-semibold mb-1">Map view</p>
-                <p className="text-sm">
+                <p className="text-base font-semibold mb-1 text-gray-900">Map view</p>
+                <p className="text-sm text-gray-400">
                   Showing {filteredCars.length} vehicles on map
                 </p>
               </div>
