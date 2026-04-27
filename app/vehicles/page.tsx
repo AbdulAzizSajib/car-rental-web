@@ -41,18 +41,17 @@ export default function VehiclesPage() {
   };
 
   return (
-    <div className="flex">
+    <div className="flex ">
       {/* Filter Sidebar */}
-      <aside className="hidden lg:block w-80 shrink-0 bg-white sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto"
+      <aside className="hidden lg:block w-80 shrink-0 bg-white sticky top-0 h-screen overflow-y-auto"
         style={{ borderRight: '1px solid #ede8df' }}>
         <FilterSidebar onFilterChange={setFilters} />
       </aside>
 
       {/* Main Vehicle area */}
       <section className="flex-1" style={{ background: '#faf8f4' }}>
-        <div className="px-6 py-5 flex items-center justify-between bg-white"
-          style={{ borderBottom: '1px solid #ede8df' }}>
-          <h1 className="text-lg font-semibold text-gray-900">
+        <div className="px-5 py-4 flex items-center justify-between bg-white border-b border-[#ede8df]">
+          <h1 className=" font-base text-gray-900">
             48 vehicles to rent
           </h1>
           <div className="flex items-center gap-4 text-sm">

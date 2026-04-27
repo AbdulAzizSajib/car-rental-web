@@ -18,7 +18,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
           collapsed ? 'ml-16' : 'ml-50'
         }`}
       >
-        <TopBar />
+        {/* <TopBar /> */}
         <main className="flex-1">{children}</main>
       </div>
     </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -13,6 +14,7 @@ import {
   CheckCircle2,
   Heart,
 } from 'lucide-react';
+import gsap from 'gsap';
 import { carsData } from '@/lib/car-data';
 
 const categories = [
@@ -41,40 +43,70 @@ export default function HomePage() {
     .sort((a, b) => b.rating - a.rating)
     .slice(0, 6);
 
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // Hero entrance timeline
+      const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+      heroTl
+        .from('.hero-badge', { y: 20, opacity: 0, duration: 0.6 })
+        .from('.hero-title', { y: 40, opacity: 0, duration: 0.9 }, '-=0.3')
+        .from('.hero-divider', { scaleX: 0, transformOrigin: 'left center', duration: 0.5 }, '-=0.5')
+        .from('.hero-sub', { y: 20, opacity: 0, duration: 0.6 }, '-=0.3')
+        .from('.hero-search', { y: 30, opacity: 0, duration: 0.7 }, '-=0.3')
+        .from('.hero-perk', { y: 12, opacity: 0, duration: 0.4, stagger: 0.08 }, '-=0.4')
+        .from('.hero-stat', { y: 30, opacity: 0, duration: 0.5, stagger: 0.1 }, '-=0.4')
+        .from('.hero-side', { opacity: 0, duration: 0.8 }, '-=0.6');
+
+      // Hero scroll cue — gentle bounce
+      gsap.to('.scroll-cue', {
+        y: 6,
+        duration: 1.2,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: -1,
+      });
+    }, rootRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="bg-white">
+    <div ref={rootRef} className="bg-white">
 
       {/* ─── Hero ─────────────────────────────────────────── */}
-      <section className="relative w-full min-h-[calc(100vh-3.5rem)] overflow-hidden flex items-center">
+      {/* min-h-[calc(100vh-3.5rem)] */}
+      <section className="relative w-full min-h-screen overflow-hidden flex items-center">
         <video autoPlay muted loop playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-55">
+          className="absolute inset-0 w-full h-full object-cover opacity-90">
           <source src="/hero-section/car-video.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/60 to-black/80" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/25" />
-        <div className="absolute left-0 top-0 w-[3px] h-full z-10"
+        <div className="absolute inset-0 bg-linear-to-r from-black/75 via-black/30 to-black/40" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-black/10" />
+        <div className="hero-side absolute left-0 top-0 w-[3px] h-full z-10"
           style={{ background: 'linear-gradient(to bottom, #c9a84c, #8b5e1a)' }} />
-        <span className="absolute right-10 top-1/2 -translate-y-1/2 rotate-90 origin-center text-[10px] tracking-[.2em] uppercase text-white z-10 whitespace-nowrap select-none">
+        <span className="hero-side absolute right-10 top-1/2 -translate-y-1/2 rotate-90 origin-center text-[10px] tracking-[.2em] uppercase text-white z-10 whitespace-nowrap select-none">
           Premium Fleet · Est. 2026
         </span>
 
         <div className="relative z-10 pl-12 pr-6 py-20 w-full max-w-2xl">
-          <div className="mb-6 inline-flex items-center gap-2 border text-[11px] tracking-[.12em] uppercase px-3.5 py-1.5 rounded-sm font-medium"
+          <div className="hero-badge mb-6 inline-flex items-center gap-2 border text-[11px] tracking-[.12em] uppercase px-3.5 py-1.5 rounded-sm font-medium"
             style={{ background: 'rgba(201,168,76,.10)', borderColor: 'rgba(201,168,76,.35)', color: '#e8c96e' }}>
             <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: '#c9a84c' }} />
             Auto Ultimate
           </div>
-          <h1 className="font-['Bebas_Neue'] text-white leading-[.92] tracking-[.01em] mb-4"
+          <h1 className="hero-title font-['Bebas_Neue'] text-white leading-[.92] tracking-[.01em] mb-4"
             style={{ fontSize: 'clamp(3.4rem, 6.5vw, 5.4rem)' }}>
             Drive More,<br />
             Spend <span style={{ color: '#c9a84c' }}>Less</span><br />
             Every Time
           </h1>
-          <div className="w-12 h-[2px] mb-5" style={{ background: '#c9a84c' }} />
-          <p className="text-sm font-light leading-relaxed max-w-sm mb-8" style={{ color: 'rgba(255,255,255,.55)' }}>
+          <div className="hero-divider w-12 h-[2px] mb-5" style={{ background: '#c9a84c' }} />
+          <p className="hero-sub text-sm font-light leading-relaxed max-w-sm mb-8" style={{ color: 'rgba(255,255,255,.55)' }}>
             From weekend escapes to cross-city business runs — access a curated fleet that moves as fast as your plans change.
           </p>
-          <div className="flex items-stretch rounded-md overflow-hidden mb-7 border"
+          <div className="hero-search flex items-stretch rounded-md overflow-hidden mb-7 border"
             style={{ background: 'rgba(255,255,255,.06)', borderColor: 'rgba(255,255,255,.12)', backdropFilter: 'blur(14px)' }}>
             <div className="flex items-center gap-3 px-4 py-3 flex-1 border-r"
               style={{ borderColor: 'rgba(255,255,255,.10)' }}>
@@ -100,7 +132,7 @@ export default function HomePage() {
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             {perks.map(({ icon: Icon, label }) => (
-              <div key={label} className="flex items-center gap-2 text-xs tracking-[.02em]"
+              <div key={label} className="hero-perk flex items-center gap-2 text-xs tracking-[.02em]"
                 style={{ color: 'rgba(255,255,255,.45)' }}>
                 <Icon size={12} style={{ color: '#c9a84c' }} />
                 {label}
@@ -111,14 +143,14 @@ export default function HomePage() {
 
         <div className="absolute bottom-8 right-16 flex gap-3 z-10">
           {[{ num: '200+', lbl: 'Vehicles' }, { num: '50K+', lbl: 'Trips Done' }, { num: '4.9★', lbl: 'Avg Rating' }].map(({ num, lbl }) => (
-            <div key={lbl} className="border rounded-md px-5 py-3 text-center"
+            <div key={lbl} className="hero-stat border rounded-md px-5 py-3 text-center"
               style={{ background: 'rgba(255,255,255,.07)', borderColor: 'rgba(255,255,255,.10)', backdropFilter: 'blur(12px)' }}>
               <div className="font-['Bebas_Neue'] text-2xl text-white tracking-wide leading-none">{num}</div>
               <div className="text-[10px] uppercase tracking-[.1em] mt-1" style={{ color: 'rgba(255,255,255,.38)' }}>{lbl}</div>
             </div>
           ))}
         </div>
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1.5" style={{ opacity: .35 }}>
+        <div className="scroll-cue absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1.5" style={{ opacity: .35 }}>
           <span className="text-[10px] uppercase tracking-[.15em] text-white">Scroll</span>
           <div className="w-px h-8 animate-pulse" style={{ background: 'linear-gradient(to bottom, white, transparent)' }} />
         </div>
@@ -247,7 +279,7 @@ export default function HomePage() {
           style={{ background: 'linear-gradient(to bottom, #c9a84c, transparent)' }} />
 
         <div className="max-w-7xl mx-auto px-6">
-          <div className="mb-14">
+          <div className="section-header mb-14">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-6 h-[2px]" style={{ background: '#c9a84c' }} />
               <p className="text-[11px] uppercase tracking-[.18em] font-semibold" style={{ color: '#c9a84c' }}>
@@ -301,7 +333,7 @@ export default function HomePage() {
           style={{ border: '1px solid rgba(201,168,76,.15)' }} />
 
         <div className="relative max-w-2xl mx-auto px-6 text-center">
-         
+
          <h2 className="font-['Bebas_Neue'] text-5xl md:text-6xl text-gray-900 tracking-wide leading-none mb-4">
             Ready to Roll?
           </h2>

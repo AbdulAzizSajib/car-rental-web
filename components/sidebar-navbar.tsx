@@ -5,9 +5,9 @@ import { usePathname } from 'next/navigation';
 import {
   Home,
   Car,
-  FileText,
+  CalendarCheck,
   Heart,
-  Clock,
+  CreditCard,
   Bell,
   MessageCircle,
   FileKey,
@@ -20,9 +20,9 @@ import {
 const mainNav = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/vehicles', label: 'Vehicles', icon: Car },
-  { href: '/notes', label: 'Notes', icon: FileText },
+  { href: '/bookings', label: 'Bookings', icon: CalendarCheck },
   { href: '/favourites', label: 'Favourites', icon: Heart },
-  { href: '/recents', label: 'Recents', icon: Clock },
+  { href: '/payments', label: 'Payments', icon: CreditCard },
   { href: '/notifications', label: 'Notifications', icon: Bell },
   { href: '/chat', label: 'Chat', icon: MessageCircle },
 ];
@@ -54,11 +54,11 @@ export function SidebarNavbar({ collapsed = false, onToggle }: SidebarNavbarProp
         key={item.href}
         href={item.href}
         title={collapsed ? item.label : undefined}
-        className={`flex items-center gap-3 rounded-lg text-sm transition-colors ${
+        className={`flex items-center gap-3 rounded-full text-sm transition-colors ${
           collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'
         } ${
           active
-            ? 'bg-gray-900 text-white'
+            ? 'bg-[#c9a84c] text-white'
             : 'text-gray-700 hover:bg-gray-100'
         }`}
       >
@@ -73,7 +73,7 @@ export function SidebarNavbar({ collapsed = false, onToggle }: SidebarNavbarProp
 
   return (
     <aside
-      className={`bg-white border-r border-gray-200 flex flex-col fixed left-0 top-0 bottom-0 h-screen z-30 transition-[width] duration-200 ${
+      className={`bg-[#faf8f4] border-r border-gray-200 flex flex-col fixed left-0 top-0 bottom-0 h-screen z-30 transition-[width] duration-200 ${
         collapsed ? 'w-16' : 'w-50'
       }`}
     >
@@ -81,7 +81,7 @@ export function SidebarNavbar({ collapsed = false, onToggle }: SidebarNavbarProp
       <button
         onClick={onToggle}
         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        className="absolute -right-3 top-7 w-6 h-6 rounded-full bg-white border border-gray-200 hover:border-gray-300 shadow-sm flex items-center justify-center text-gray-500 hover:text-gray-900 z-40 transition-colors"
+        className="absolute -right-3 top-4 w-6 h-6 rounded-full bg-white border border-gray-200 hover:border-gray-300 shadow-sm flex items-center justify-center text-gray-500 hover:text-gray-900 z-40 transition-colors"
       >
         {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
       </button>
@@ -92,7 +92,7 @@ export function SidebarNavbar({ collapsed = false, onToggle }: SidebarNavbarProp
           collapsed ? 'justify-center px-2' : 'px-5'
         }`}
       >
-        <div className="w-6 h-6 bg-gray-900 rounded flex items-center justify-center shrink-0">
+        {/* <div className="w-6 h-6 bg-gray-900 rounded flex items-center justify-center shrink-0">
           <svg
             width="14"
             height="14"
@@ -108,7 +108,7 @@ export function SidebarNavbar({ collapsed = false, onToggle }: SidebarNavbarProp
               strokeLinejoin="round"
             />
           </svg>
-        </div>
+        </div> */}
         {!collapsed && (
           <span className="text-[13px] font-bold tracking-wider text-gray-900 whitespace-nowrap">
             AUTO ULTIMATE

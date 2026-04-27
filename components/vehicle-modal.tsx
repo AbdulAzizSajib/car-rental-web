@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { X, Heart, MapPin, Zap, Gauge, Users } from 'lucide-react';
 import { Car } from '@/lib/car-data';
 import { Button } from '@/components/ui/button';
@@ -19,8 +20,14 @@ export function VehicleModal({
   onFavoriteToggle,
 }: VehicleModalProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'specs' | 'pricing'>('details');
+  const router = useRouter();
 
   if (!car) return null;
+
+  const handleBookNow = () => {
+    onClose();
+    router.push('/bookings');
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -192,7 +199,10 @@ export function VehicleModal({
               <p className="text-3xl font-bold text-gray-900">${car.pricePerHour.toFixed(2)}</p>
               <p className="text-sm text-gray-600">/hour</p>
             </div>
-            <Button className="bg-gray-900 text-white hover:bg-gray-800 px-8 py-2 text-lg">
+            <Button
+              onClick={handleBookNow}
+              className="bg-gray-900 text-white hover:bg-gray-800 px-8 py-2 text-lg"
+            >
               Book now
             </Button>
           </div>
