@@ -2,15 +2,19 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Heart, MapPin, Zap, Gauge, Users } from 'lucide-react';
-import { Car } from '@/src/lib/car-data';
+import { X, Heart, MapPin, Gauge, Users, Fuel } from 'lucide-react';
+import { ApiCar } from '@/src/types/car.types';
 import { Button } from '@/src/components/ui/button';
 
 interface VehicleModalProps {
-  car: Car | null;
+  car: ApiCar | null;
   onClose: () => void;
   isFavorite?: boolean;
-  onFavoriteToggle?: (carId: number) => void;
+  onFavoriteToggle?: (carId: string) => void;
+}
+
+function toTitleCase(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
 export function VehicleModal({
@@ -29,6 +33,8 @@ export function VehicleModal({
     router.push('/bookings');
   };
 
+  const estimatedHourly = Math.round(car.pricePerDay / 24);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -36,7 +42,7 @@ export function VehicleModal({
         <div className="sticky top-0 bg-white border-b flex items-center justify-between p-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">{car.name}</h2>
-            <p className="text-sm text-gray-600">{car.model}</p>
+            <p className="text-sm text-gray-600">{car.model} · {car.year}</p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -58,8 +64,12 @@ export function VehicleModal({
         </div>
 
         {/* Image */}
-        <div className="w-full h-80 bg-gray-100 overflow-hidden">
-          <img src={car.image} alt={car.name} className="w-full h-full object-cover" />
+        <div className="w-full h-80 bg-gray-100 overflow-hidden flex items-center justify-center">
+          {car.images[0] ? (
+            <img src={car.images[0]} alt={car.name} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-gray-400 text-sm">{car.brand} · {car.color ?? 'No image'}</span>
+          )}
         </div>
 
         {/* Tabs */}
@@ -85,44 +95,43 @@ export function VehicleModal({
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">
-                    PASSENGERS
-                  </label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">SEATS</label>
                   <p className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                     <Users size={20} />
-                    {car.passengers}
+                    {car.seats}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">
-                    TRANSMISSION
-                  </label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">TRANSMISSION</label>
                   <p className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                     <Gauge size={20} />
-                    {car.transmission}
+                    {toTitleCase(car.transmission)}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">
-                    POWER
-                  </label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">MILEAGE</label>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {car.mileage.toLocaleString()} km
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">FUEL TYPE</label>
                   <p className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <Zap size={20} />
-                    {car.power} {car.powerUnit}
+                    <Fuel size={20} />
+                    {toTitleCase(car.fuelType)}
                   </p>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">
-                    FUEL TYPE
-                  </label>
-                  <p className="text-lg font-semibold text-gray-900">{car.fuelType}</p>
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">
-                  BODY TYPE
-                </label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">BODY TYPE</label>
                 <p className="text-lg font-semibold text-gray-900">{car.bodyType}</p>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">LOCATION</label>
+                <p className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <MapPin size={20} />
+                  {car.location}
+                </p>
               </div>
             </div>
           )}
@@ -133,26 +142,40 @@ export function VehicleModal({
                 <h3 className="font-semibold text-gray-900 mb-2">Vehicle Specifications</h3>
                 <dl className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <dt className="text-gray-600">Passengers:</dt>
-                    <dd className="font-semibold text-gray-900">{car.passengers}</dd>
+                    <dt className="text-gray-600">Brand:</dt>
+                    <dd className="font-semibold text-gray-900">{car.brand}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-gray-600">Power:</dt>
-                    <dd className="font-semibold text-gray-900">
-                      {car.power} {car.powerUnit}
-                    </dd>
+                    <dt className="text-gray-600">Year:</dt>
+                    <dd className="font-semibold text-gray-900">{car.year}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600">Seats:</dt>
+                    <dd className="font-semibold text-gray-900">{car.seats}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600">Mileage:</dt>
+                    <dd className="font-semibold text-gray-900">{car.mileage.toLocaleString()} km</dd>
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-gray-600">Transmission:</dt>
-                    <dd className="font-semibold text-gray-900">{car.transmission}</dd>
+                    <dd className="font-semibold text-gray-900">{toTitleCase(car.transmission)}</dd>
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-gray-600">Fuel Type:</dt>
-                    <dd className="font-semibold text-gray-900">{car.fuelType}</dd>
+                    <dd className="font-semibold text-gray-900">{toTitleCase(car.fuelType)}</dd>
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-gray-600">Body Type:</dt>
                     <dd className="font-semibold text-gray-900">{car.bodyType}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600">AC:</dt>
+                    <dd className="font-semibold text-gray-900">{car.isAC ? 'Yes' : 'No'}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600">With Driver:</dt>
+                    <dd className="font-semibold text-gray-900">{car.isWithDriver ? 'Yes' : 'No'}</dd>
                   </div>
                 </dl>
               </div>
@@ -161,30 +184,23 @@ export function VehicleModal({
 
           {activeTab === 'pricing' && (
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg text-center">
-                  <p className="text-xs font-semibold text-gray-500 mb-1">MINUTE RATE</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    ${(car.pricePerHour / 60).toFixed(2)}
-                  </p>
-                  <p className="text-xs text-gray-600">/ min</p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg text-center">
-                  <p className="text-xs font-semibold text-gray-500 mb-1">HOURLY RATE</p>
-                  <p className="text-2xl font-bold text-gray-900">${car.pricePerHour.toFixed(2)}</p>
+                  <p className="text-xs font-semibold text-gray-500 mb-1">HOURLY ESTIMATE</p>
+                  <p className="text-2xl font-bold text-gray-900">৳{estimatedHourly.toLocaleString()}</p>
                   <p className="text-xs text-gray-600">/ hour</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg text-center">
                   <p className="text-xs font-semibold text-gray-500 mb-1">DAILY RATE</p>
-                  <p className="text-2xl font-bold text-gray-900">${car.pricePerDay.toFixed(0)}</p>
+                  <p className="text-2xl font-bold text-gray-900">৳{car.pricePerDay.toLocaleString()}</p>
                   <p className="text-xs text-gray-600">/ day</p>
                 </div>
               </div>
 
               <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
                 <p className="text-sm text-green-900">
-                  <span className="font-semibold">Discount available:</span> Book 7 days or more
-                  and get 23% off!
+                  <span className="font-semibold">Rental type:</span>{' '}
+                  {car.rentalType === 'ANY' ? 'Flexible (per day or hour)' : car.rentalType === 'PER_DAY' ? 'Per day only' : 'Per hour only'}
                 </p>
               </div>
             </div>
@@ -196,8 +212,8 @@ export function VehicleModal({
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-xs font-semibold text-gray-500">STARTING FROM</p>
-              <p className="text-3xl font-bold text-gray-900">${car.pricePerHour.toFixed(2)}</p>
-              <p className="text-sm text-gray-600">/hour</p>
+              <p className="text-3xl font-bold text-gray-900">৳{car.pricePerDay.toLocaleString()}</p>
+              <p className="text-sm text-gray-600">/day</p>
             </div>
             <Button
               onClick={handleBookNow}
@@ -206,7 +222,7 @@ export function VehicleModal({
               Book now
             </Button>
           </div>
-          <p className="text-xs text-gray-600">10 min free</p>
+          <p className="text-xs text-gray-600">Host: {car.host.user.name}</p>
         </div>
       </div>
     </div>

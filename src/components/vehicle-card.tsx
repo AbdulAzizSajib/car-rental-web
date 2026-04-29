@@ -1,14 +1,19 @@
 'use client';
 
-import { Heart, Star } from 'lucide-react';
+import { Heart, MapPin } from 'lucide-react';
 import { useState } from 'react';
-import { Car } from '@/src/lib/car-data';
+import { ApiCar } from '@/src/types/car.types';
+
+function resolveName(val: string | { name: string } | null | undefined): string {
+  if (!val) return '';
+  return typeof val === 'string' ? val : val.name;
+}
 
 interface VehicleCardProps {
-  car: Car;
-  onCardClick: (car: Car) => void;
+  car: ApiCar;
+  onCardClick: (car: ApiCar) => void;
   isFavorite?: boolean;
-  onFavoriteToggle?: (carId: number) => void;
+  onFavoriteToggle?: (carId: string) => void;
 }
 
 export function VehicleCard({
@@ -18,6 +23,7 @@ export function VehicleCard({
   onFavoriteToggle,
 }: VehicleCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const primaryImage = car.images.find((img) => img.isPrimary)?.url ?? car.images[0]?.url;
 
   return (
     <div
@@ -29,17 +35,11 @@ export function VehicleCard({
       {/* Top meta row */}
       <div className="flex items-center justify-between px-4 pt-3">
         <div className="flex items-center gap-3 text-xs text-gray-500">
-          <span>
-            {car.distance < 1000
-              ? `${car.distance * 100}m`
-              : `${car.distance}km`}{' '}
-            ({Math.max(1, Math.round(car.distance / 2))} min)
-          </span>
           <span className="flex items-center gap-1">
-            <Star size={12} className="fill-yellow-400 text-yellow-400" />
-            <span className="text-gray-900 font-medium">{car.rating.toFixed(1)}</span>
-            <span className="text-gray-400">({car.reviewCount})</span>
+            <MapPin size={12} />
+            {car.location}
           </span>
+          <span className="capitalize text-gray-400">{resolveName(car.brand)}</span>
         </div>
         <button
           onClick={(e) => {
@@ -60,12 +60,21 @@ export function VehicleCard({
 
       {/* Image */}
       <div className="relative h-36 flex items-center justify-center overflow-hidden px-4">
-        <img
-          src={car.image}
-          alt={car.name}
-          className="w-full h-full object-contain transition-transform duration-300"
-          style={{ transform: isHovered ? 'scale(1.05)' : 'scale(1)' }}
-        />
+        {primaryImage ? (
+          <img
+            src={primaryImage}
+            alt={car.name}
+            className="w-full h-full object-contain transition-transform duration-300"
+            style={{ transform: isHovered ? 'scale(1.05)' : 'scale(1)' }}
+          />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg transition-transform duration-300"
+            style={{ transform: isHovered ? 'scale(1.05)' : 'scale(1)' }}
+          >
+            <span className="text-gray-300 text-xs">{car.year} · {car.color ?? resolveName(car.brand)}</span>
+          </div>
+        )}
       </div>
 
       {/* Bottom info */}
@@ -74,13 +83,13 @@ export function VehicleCard({
           <h3 className="font-semibold text-[15px] text-gray-900 truncate">
             {car.name}
           </h3>
-          <p className="text-xs text-gray-500 truncate">{car.model}</p>
+          <p className="text-xs text-gray-500 truncate">{resolveName(car.model)}</p>
         </div>
         <div className="text-right shrink-0">
           <span className="text-base font-semibold text-gray-900">
-            ${car.pricePerHour.toFixed(2)}
+            ৳{car.pricePerDay.toLocaleString()}
           </span>
-          <span className="text-xs text-gray-400"> / hour</span>
+          <span className="text-xs text-gray-400"> / day</span>
         </div>
       </div>
     </div>

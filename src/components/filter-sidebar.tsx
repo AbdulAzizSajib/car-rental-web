@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import { Slider } from '@/src/components/ui/slider';
 import { Checkbox } from '@/src/components/ui/checkbox';
 import { Switch } from '@/src/components/ui/switch';
+import { getBrandsAction } from '@/src/services/cars/getBrands.action';
+import { getModelsAction } from '@/src/services/cars/getModels.action';
+import { Brand, CarModel } from '@/src/types/car.types';
 
 export interface FilterState {
   priceMin: number;
@@ -14,6 +17,8 @@ export interface FilterState {
   bodyTypes: string[];
   transmissions: string[];
   fuelTypes: string[];
+  brandId?: string;
+  modelId?: string;
 }
 
 interface FilterSidebarProps {
@@ -54,13 +59,15 @@ function SectionHeader({
 
 export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
   const initial: FilterState = {
-    priceMin: 19,
-    priceMax: 99,
-    rentalType: 'perHour',
+    priceMin: 0,
+    priceMax: 10000,
+    rentalType: 'any',
     availableNow: false,
-    bodyTypes: ['Sedan', 'Coupe', 'Hatchback', 'Crossover', 'Van'],
+    bodyTypes: [],
     transmissions: [],
-    fuelTypes: ['Gasoline', 'Flex Fuel (E85)', 'Electric'],
+    fuelTypes: [],
+    brandId: undefined,
+    modelId: undefined,
   };
 
   const [filters, setFilters] = useState<FilterState>(initial);
@@ -68,12 +75,24 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
     rentalType: true,
     availableNow: true,
     priceRange: true,
-    carBrand: false,
-    carModel: false,
+    carBrand: true,
+    carModel: true,
     bodyType: true,
     transmission: true,
     fuelType: true,
   });
+
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [allModels, setAllModels] = useState<CarModel[]>([]);
+
+  useEffect(() => {
+    getBrandsAction().then((res) => setBrands(res.data ?? [])).catch(() => {});
+    getModelsAction().then((res) => setAllModels(res.data ?? [])).catch(() => {});
+  }, []);
+
+  const filteredModels = filters.brandId
+    ? allModels.filter((m) => m.brandId === filters.brandId)
+    : allModels;
 
   const update = (next: FilterState) => {
     setFilters(next);
@@ -95,6 +114,15 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
       ? list.filter((v) => v !== value)
       : [...list, value];
     update({ ...filters, [category]: next });
+  };
+
+  const selectBrand = (id: string) => {
+    const isSame = filters.brandId === id;
+    update({ ...filters, brandId: isSame ? undefined : id, modelId: undefined });
+  };
+
+  const selectModel = (id: string) => {
+    update({ ...filters, modelId: filters.modelId === id ? undefined : id });
   };
 
   return (
@@ -161,16 +189,15 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
       {/* Price Range */}
       <div className="px-5 py-4 border-b border-gray-100">
         <SectionHeader
-          title="Price range / hour"
+          title="Price range / day"
           open={openSections.priceRange}
           onToggle={() => toggleSection('priceRange')}
         />
         {openSections.priceRange && (
           <div className="mt-4">
-            {/* Histogram */}
-            <div className="flex items-end gap-[2px] h-16 mb-2">
+            <div className="flex items-end gap-0.5 h-16 mb-2">
               {HISTOGRAM.map((h, i) => {
-                const stepValue = (i / HISTOGRAM.length) * 100;
+                const stepValue = (i / HISTOGRAM.length) * 10000;
                 const inRange =
                   stepValue >= filters.priceMin && stepValue <= filters.priceMax;
                 return (
@@ -186,8 +213,8 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
             </div>
             <Slider
               min={0}
-              max={100}
-              step={1}
+              max={10000}
+              step={100}
               value={[filters.priceMin, filters.priceMax]}
               onValueChange={(v) =>
                 update({ ...filters, priceMin: v[0], priceMax: v[1] })
@@ -198,13 +225,13 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
               <div className="flex-1 border border-gray-200 rounded-md px-3 py-1.5 flex items-center justify-between">
                 <span className="text-[10px] tracking-wider text-gray-400 uppercase">From</span>
                 <span className="text-sm font-semibold text-gray-900">
-                  ${filters.priceMin.toFixed(2)}
+                  ৳{filters.priceMin.toLocaleString()}
                 </span>
               </div>
               <div className="flex-1 border border-gray-200 rounded-md px-3 py-1.5 flex items-center justify-between">
                 <span className="text-[10px] tracking-wider text-gray-400 uppercase">To</span>
                 <span className="text-sm font-semibold text-gray-900">
-                  ${filters.priceMax.toFixed(2)}
+                  ৳{filters.priceMax.toLocaleString()}
                 </span>
               </div>
             </div>
@@ -212,7 +239,7 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
         )}
       </div>
 
-      {/* Car brand (collapsed placeholder) */}
+      {/* Car Brand */}
       <div className="px-5 py-4 border-b border-gray-100">
         <SectionHeader
           title="Car brand"
@@ -220,19 +247,59 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
           onToggle={() => toggleSection('carBrand')}
         />
         {openSections.carBrand && (
-          <p className="mt-3 text-xs text-gray-400">No brand filters configured.</p>
+          <div className="mt-3 space-y-2 grid grid-cols-1 md:grid-cols-2">
+            {brands.length === 0 ? (
+              <p className="text-xs text-gray-400">Loading...</p>
+            ) : (
+              brands.map((brand) => (
+                <label key={brand.id} className="flex items-center justify-between cursor-pointer group">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={filters.brandId === brand.id}
+                      onCheckedChange={() => selectBrand(brand.id)}
+                    />
+                    <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                      {brand.name}
+                    </span>
+                  </div>
+                  {/* <span className="text-[11px] text-gray-400">{brand._count.cars}</span> */}
+                </label>
+              ))
+            )}
+          </div>
         )}
       </div>
 
-      {/* Car model & year (collapsed placeholder) */}
+      {/* Car Model */}
       <div className="px-5 py-4 border-b border-gray-100">
         <SectionHeader
-          title="Car model & year"
+          title="Car model"
           open={openSections.carModel}
           onToggle={() => toggleSection('carModel')}
         />
         {openSections.carModel && (
-          <p className="mt-3 text-xs text-gray-400">No model filters configured.</p>
+          <div className="mt-3 space-y-2 grid grid-cols-1 md:grid-cols-2">
+            {!filters.brandId && allModels.length === 0 ? (
+              <p className="text-xs text-gray-400">Loading...</p>
+            ) : filteredModels.length === 0 ? (
+              <p className="text-xs text-gray-400">No models found.</p>
+            ) : (
+              filteredModels.map((model) => (
+                <label key={model.id} className="flex items-center justify-between cursor-pointer group">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={filters.modelId === model.id}
+                      onCheckedChange={() => selectModel(model.id)}
+                    />
+                    <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                      {model.name}
+                    </span>
+                  </div>
+                  {/* <span className="text-[11px] text-gray-400">{model._count.cars}</span> */}
+                </label>
+              ))
+            )}
+          </div>
         )}
       </div>
 

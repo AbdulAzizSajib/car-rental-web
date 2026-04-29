@@ -47,7 +47,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${epilogue.variable} ${bangla.variable} ${bebasNeue.variable} font-sans antialiased bg-gray-50`}>
+      <body suppressHydrationWarning className={`${epilogue.variable} ${bangla.variable} ${bebasNeue.variable} font-sans antialiased bg-gray-50`}>
         <LayoutShell>{children}</LayoutShell>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
