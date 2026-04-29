@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
-import { getDefaultDashboardRoute, isValidRedirectForRole } from "../../lib/authUtils";
+import { isValidRedirectForRole } from "../../lib/authUtils";
 import { httpClient } from "../../lib/axios/httpClient";
 import { setTokenInCookies } from "../../lib/tokenUtils";
 import { ApiErrorResponse } from "../../types/api.types";
@@ -37,7 +37,7 @@ export const loginAction = async (payload : ILoginPayload, redirectPath ?: strin
         await setTokenInCookies("refreshToken", refreshToken);
         await setTokenInCookies("better-auth.session_token", token, 24 * 60 * 60);
 
-        const targetPath = redirectPath && isValidRedirectForRole(redirectPath, role as UserRole) ? redirectPath : getDefaultDashboardRoute(role as UserRole);
+        const targetPath = redirectPath && isValidRedirectForRole(redirectPath, role as UserRole) ? redirectPath : "/";
         redirect(targetPath);
         
     } catch (error : any) {
