@@ -79,7 +79,7 @@ export default function HomePage() {
       {/* min-h-[calc(100vh-3.5rem)] */}
       <section className="relative w-full min-h-screen overflow-hidden flex items-center">
         <video autoPlay muted loop playsInline
-          className="absolute inset-0 -rotate-1 scale-110 w-full h-full object-cover opacity-90">
+          className="absolute inset-0 w-full h-full object-cover opacity-90">
           <source src="/hero-section/car-video.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-linear-to-r from-black/75 via-black/30 to-black/40" />

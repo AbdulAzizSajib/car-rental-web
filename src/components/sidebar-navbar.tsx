@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import {
   Home,
   Car,
@@ -13,9 +14,13 @@ import {
   FileKey,
   LifeBuoy,
   LogOut,
+  LogIn,
   ChevronLeft,
   ChevronRight,
+  LucideLayoutDashboard,
 } from 'lucide-react';
+import { logoutAction } from '@/src/services/auth/logout.action';
+import { getAuthStatusAction } from '@/src/services/auth/getAuthStatus.action';
 
 const mainNav = [
   { href: '/', label: 'Home', icon: Home },
@@ -30,7 +35,7 @@ const mainNav = [
 const bottomNav = [
   { href: '/license', label: 'License', icon: FileKey },
   { href: '/support', label: 'Support', icon: LifeBuoy },
-  { href: '/logout', label: 'Logout', icon: LogOut },
+  { href: '/dashboard', label: 'Dashboard', icon: LucideLayoutDashboard },
 ];
 
 interface SidebarNavbarProps {
@@ -40,6 +45,20 @@ interface SidebarNavbarProps {
 
 export function SidebarNavbar({ collapsed = false, onToggle }: SidebarNavbarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    getAuthStatusAction().then(setIsAuthenticated);
+  }, [pathname]);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    await logoutAction();
+    setIsAuthenticated(false);
+    router.push('/login');
+  };
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -124,6 +143,30 @@ export function SidebarNavbar({ collapsed = false, onToggle }: SidebarNavbarProp
       {/* Bottom Navigation */}
       <div className="px-3 py-3 border-t border-gray-100 flex flex-col gap-0.5">
         {bottomNav.map(renderItem)}
+        {isAuthenticated ? (
+          <button
+            onClick={handleLogout}
+            disabled={loggingOut}
+            title={collapsed ? 'Logout' : undefined}
+            className={`flex items-center gap-3 rounded-full text-sm transition-colors text-gray-700 hover:bg-gray-100 disabled:opacity-50 ${
+              collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'
+            }`}
+          >
+            <LogOut size={18} className="text-gray-600 shrink-0" />
+            {!collapsed && <span className="font-medium">{loggingOut ? 'Logging out…' : 'Logout'}</span>}
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            title={collapsed ? 'Login' : undefined}
+            className={`flex items-center gap-3 rounded-full text-sm transition-colors text-gray-700 hover:bg-gray-100 ${
+              collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'
+            }`}
+          >
+            <LogIn size={18} className="text-gray-600 shrink-0" />
+            {!collapsed && <span className="font-medium">Login</span>}
+          </Link>
+        )}
       </div>
     </aside>
   );

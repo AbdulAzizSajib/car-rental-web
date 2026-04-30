@@ -7,7 +7,9 @@ import { Checkbox } from '@/src/components/ui/checkbox';
 import { Switch } from '@/src/components/ui/switch';
 import { getBrandsAction } from '@/src/services/cars/getBrands.action';
 import { getModelsAction } from '@/src/services/cars/getModels.action';
-import { Brand, CarModel } from '@/src/types/car.types';
+import { getFuelTypesAction } from '@/src/services/cars/getFuelTypes.action';
+import { getBodyTypesAction } from '@/src/services/cars/getBodyTypes.action';
+import { Brand, CarModel, FuelType, BodyType } from '@/src/types/car.types';
 
 export interface FilterState {
   priceMin: number;
@@ -25,8 +27,6 @@ interface FilterSidebarProps {
   onFilterChange: (filters: FilterState) => void;
 }
 
-const bodyTypes = ['Sedan', 'Wagon', 'Coupe', 'Hatchback', 'Pickup', 'Sport coupe', 'Crossover', 'Van'];
-const fuelTypes = ['Gasoline', 'Flex Fuel (E85)', 'Diesel', 'Hybrid', 'Electric', 'Hydrogen', 'Other'];
 
 const HISTOGRAM = [
   6, 8, 10, 14, 18, 22, 28, 36, 44, 56, 70, 82, 92, 96, 90, 80, 68, 58, 48, 40,
@@ -84,10 +84,14 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
 
   const [brands, setBrands] = useState<Brand[]>([]);
   const [allModels, setAllModels] = useState<CarModel[]>([]);
+  const [bodyTypeOptions, setBodyTypeOptions] = useState<BodyType[]>([]);
+  const [fuelTypeOptions, setFuelTypeOptions] = useState<FuelType[]>([]);
 
   useEffect(() => {
     getBrandsAction().then((res) => setBrands(res.data ?? [])).catch(() => {});
     getModelsAction().then((res) => setAllModels(res.data ?? [])).catch(() => {});
+    getBodyTypesAction().then((res) => setBodyTypeOptions(res.data ?? [])).catch(() => {});
+    getFuelTypesAction().then((res) => setFuelTypeOptions(res.data ?? [])).catch(() => {});
   }, []);
 
   const filteredModels = filters.brandId
@@ -312,15 +316,19 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
         />
         {openSections.bodyType && (
           <div className="mt-3 grid grid-cols-2 gap-y-2.5 gap-x-3">
-            {bodyTypes.map((type) => (
-              <label key={type} className="flex items-center gap-2 cursor-pointer">
-                <Checkbox
-                  checked={filters.bodyTypes.includes(type)}
-                  onCheckedChange={() => togglePill('bodyTypes', type)}
-                />
-                <span className="text-sm text-gray-700">{type}</span>
-              </label>
-            ))}
+            {bodyTypeOptions.length === 0 ? (
+              <p className="text-xs text-gray-400">Loading...</p>
+            ) : (
+              bodyTypeOptions.map((type) => (
+                <label key={type.id} className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={filters.bodyTypes.includes(type.id)}
+                    onCheckedChange={() => togglePill('bodyTypes', type.id)}
+                  />
+                  <span className="text-sm text-gray-700">{type.name}</span>
+                </label>
+              ))
+            )}
           </div>
         )}
       </div>
@@ -377,15 +385,19 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
         />
         {openSections.fuelType && (
           <div className="mt-3 grid grid-cols-2 gap-y-2.5 gap-x-3">
-            {fuelTypes.map((type) => (
-              <label key={type} className="flex items-center gap-2 cursor-pointer">
-                <Checkbox
-                  checked={filters.fuelTypes.includes(type)}
-                  onCheckedChange={() => togglePill('fuelTypes', type)}
-                />
-                <span className="text-sm text-gray-700">{type}</span>
-              </label>
-            ))}
+            {fuelTypeOptions.length === 0 ? (
+              <p className="text-xs text-gray-400">Loading...</p>
+            ) : (
+              fuelTypeOptions.map((type) => (
+                <label key={type.id} className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={filters.fuelTypes.includes(type.id)}
+                    onCheckedChange={() => togglePill('fuelTypes', type.id)}
+                  />
+                  <span className="text-sm text-gray-700">{type.name}</span>
+                </label>
+              ))
+            )}
           </div>
         )}
       </div>

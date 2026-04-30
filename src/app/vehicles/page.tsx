@@ -13,16 +13,6 @@ import { getCarsAction } from '@/src/services/cars/getCars.action';
 import { ApiCar, CarsFilterParams } from '@/src/types/car.types';
 import { Button } from '@/src/components/ui/button';
 
-const FUEL_TYPE_MAP: Record<string, string> = {
-  Gasoline: 'PETROL',
-  'Flex Fuel (E85)': 'PETROL',
-  Diesel: 'DIESEL',
-  Electric: 'ELECTRIC',
-  Hybrid: 'HYBRID',
-  Hydrogen: 'OTHER',
-  Other: 'OTHER',
-};
-
 function toTitleCase(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
@@ -39,9 +29,8 @@ function buildApiParams(filters: FilterState): CarsFilterParams {
   if (filters.transmissions.length === 1) {
     params.transmission = filters.transmissions[0].toUpperCase();
   }
-  if (filters.fuelTypes.length === 1) {
-    params.fuelType = FUEL_TYPE_MAP[filters.fuelTypes[0]] ?? filters.fuelTypes[0].toUpperCase();
-  }
+  if (filters.fuelTypes.length === 1) params.fuelTypeId = filters.fuelTypes[0];
+  if (filters.bodyTypes.length === 1) params.bodyTypeId = filters.bodyTypes[0];
   if (filters.brandId) params.brandId = filters.brandId;
   if (filters.modelId) params.modelId = filters.modelId;
 

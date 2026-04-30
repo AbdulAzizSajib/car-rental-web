@@ -45,13 +45,28 @@ export interface CarModel {
   _count: { cars: number };
 }
 
+export interface BodyType {
+  id: string;
+  name: string;
+  image: string | null;
+  _count: { cars: number };
+}
+
+export interface FuelType {
+  id: string;
+  name: string;
+  image: string | null;
+  _count: { cars: number };
+}
+
 export interface CarsFilterParams {
   page?: number;
   limit?: number;
   search?: string;
   brandId?: string;
   modelId?: string;
-  fuelType?: string;
+  fuelTypeId?: string;
+  bodyTypeId?: string;
   transmission?: string;
   rentalType?: string;
   priceFrom?: number;
