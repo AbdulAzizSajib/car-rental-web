@@ -23,10 +23,6 @@ import {
   AlertDialogTitle,
 } from "@/src/components/ui/alert-dialog";
 import { BodyType } from "@/src/types/car.types";
-import { getBrandsAction } from "@/src/services/cars/getBrands.action";
-import { createBrandAction } from "@/src/services/cars/createBrand.action";
-import { updateBrandAction } from "@/src/services/cars/updateBrand.action";
-import { deleteBrandAction } from "@/src/services/cars/deleteBrand.action";
 import { getBodyTypesAction } from "@/src/services/cars/bodyTypes/getBodyTypes.action";
 import { updateBodyTypeAction } from "@/src/services/cars/bodyTypes/updateBodyType.action";
 import { createBodyTypeAction } from "@/src/services/cars/bodyTypes/createBodyType.action";
@@ -182,7 +178,7 @@ export default function AdminBodyTypesPage() {
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search brands…"
+                placeholder="Search body types…"
                 className="pl-9"
               />
             </div>
@@ -194,8 +190,8 @@ export default function AdminBodyTypesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[11px] uppercase tracking-wider text-gray-500 border-b border-[#ede8df]">
-                  <th className="px-5 py-3 font-semibold">Brand</th>
-                  <th className="px-5 py-3 font-semibold">Logo</th>
+                  <th className="px-5 py-3 font-semibold">Body Type</th>
+                  <th className="px-5 py-3 font-semibold">Image</th>
                   <th className="px-5 py-3 font-semibold text-right">Cars</th>
                   <th className="px-5 py-3 font-semibold text-right">
                     Actions
