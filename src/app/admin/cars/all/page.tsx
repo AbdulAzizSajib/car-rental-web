@@ -11,6 +11,8 @@ import {
   Car,
   Filter,
   X,
+  ImagePlus,
+  Star,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
@@ -39,11 +41,30 @@ import {
   SelectValue,
 } from "@/src/components/ui/select";
 import { Badge } from "@/src/components/ui/badge";
-import { ApiCar, Brand, BodyType, FuelType, CarModel, CarsFilterParams } from "@/src/types/car.types";
+import {
+  ApiCar,
+  Brand,
+  BodyType,
+  FuelType,
+  CarModel,
+  CarsFilterParams,
+} from "@/src/types/car.types";
 import { getCarsAction } from "@/src/services/cars/cars/getCars.action";
-import { createCarAction, CreateCarPayload } from "@/src/services/cars/cars/createCar.action";
-import { updateCarAction, UpdateCarPayload } from "@/src/services/cars/cars/updateCar.action";
+import {
+  createCarAction,
+  CreateCarPayload,
+} from "@/src/services/cars/cars/createCar.action";
+import {
+  updateCarAction,
+  UpdateCarPayload,
+} from "@/src/services/cars/cars/updateCar.action";
 import { deleteCarAction } from "@/src/services/cars/cars/deleteCar.action";
+import {
+  uploadCarImagesAction,
+  CarImage,
+} from "@/src/services/cars/cars/uploadCarImages.action";
+import { setCarImagePrimaryAction } from "@/src/services/cars/cars/setCarImagePrimary.action";
+import { deleteCarImageAction } from "@/src/services/cars/cars/deleteCarImage.action";
 import { getBrandsAction } from "@/src/services/cars/brand/getBrands.action";
 import { getBodyTypesAction } from "@/src/services/cars/bodyTypes/getBodyTypes.action";
 import { getFuelTypesAction } from "@/src/services/cars/fuelTypes/getFuelTypes.action";
@@ -140,6 +161,12 @@ export default function AdminAllCarsPage() {
   const [deleteTarget, setDeleteTarget] = useState<ApiCar | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // images
+  const [imagesCar, setImagesCar] = useState<ApiCar | null>(null);
+  const [imagesDialogOpen, setImagesDialogOpen] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [imageActionId, setImageActionId] = useState<string | null>(null);
+
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   // load reference data once
@@ -181,7 +208,8 @@ export default function AdminAllCarsPage() {
         fuelTypeId: filterFuelTypeId || undefined,
         transmission: filterTransmission || undefined,
         rentalType: filterRentalType || undefined,
-        isAvailable: filterAvailable === "" ? undefined : filterAvailable === "true",
+        isAvailable:
+          filterAvailable === "" ? undefined : filterAvailable === "true",
       };
       const res = await getCarsAction(params);
       setCars(res.data ?? []);
@@ -192,7 +220,17 @@ export default function AdminAllCarsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, filterBrandId, filterModelId, filterBodyTypeId, filterFuelTypeId, filterTransmission, filterRentalType, filterAvailable]);
+  }, [
+    page,
+    debouncedSearch,
+    filterBrandId,
+    filterModelId,
+    filterBodyTypeId,
+    filterFuelTypeId,
+    filterTransmission,
+    filterRentalType,
+    filterAvailable,
+  ]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -201,7 +239,16 @@ export default function AdminAllCarsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, filterBrandId, filterModelId, filterBodyTypeId, filterFuelTypeId, filterTransmission, filterRentalType, filterAvailable]);
+  }, [
+    debouncedSearch,
+    filterBrandId,
+    filterModelId,
+    filterBodyTypeId,
+    filterFuelTypeId,
+    filterTransmission,
+    filterRentalType,
+    filterAvailable,
+  ]);
 
   useEffect(() => {
     fetchCars();
@@ -238,10 +285,12 @@ export default function AdminAllCarsPage() {
     setEditing(car);
     const brandId = typeof car.brand === "object" ? car.brand.id : "";
     const modelId = typeof car.model === "object" ? car.model.id : "";
-    const bodyTypeId = typeof car.bodyType === "object"
-      ? (car.bodyType as { id: string }).id
-      : bodyTypes.find((bt) => bt.name === car.bodyType)?.id ?? "";
-    const fuelTypeId = fuelTypes.find((ft) => ft.name === car.fuelType)?.id ?? "";
+    const bodyTypeId =
+      typeof car.bodyType === "object"
+        ? (car.bodyType as { id: string }).id
+        : (bodyTypes.find((bt) => bt.name === car.bodyType)?.id ?? "");
+    const fuelTypeId =
+      fuelTypes.find((ft) => ft.name === car.fuelType)?.id ?? "";
     setForm({
       name: car.name,
       brandId,
@@ -254,7 +303,8 @@ export default function AdminAllCarsPage() {
       transmission: car.transmission,
       fuelTypeId,
       mileage: String(car.mileage),
-      engineCapacity: car.engineCapacity != null ? String(car.engineCapacity) : "",
+      engineCapacity:
+        car.engineCapacity != null ? String(car.engineCapacity) : "",
       color: car.color ?? "",
       registrationNo: car.registrationNo ?? "",
       location: car.location,
@@ -268,13 +318,34 @@ export default function AdminAllCarsPage() {
 
   const submitForm = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) { setFormError("Name is required"); return; }
-    if (!form.brandId) { setFormError("Brand is required"); return; }
-    if (!form.modelId) { setFormError("Model is required"); return; }
-    if (!form.bodyTypeId) { setFormError("Body type is required"); return; }
-    if (!form.fuelTypeId) { setFormError("Fuel type is required"); return; }
-    if (!form.pricePerDay) { setFormError("Price per day is required"); return; }
-    if (!form.location.trim()) { setFormError("Location is required"); return; }
+    if (!form.name.trim()) {
+      setFormError("Name is required");
+      return;
+    }
+    if (!form.brandId) {
+      setFormError("Brand is required");
+      return;
+    }
+    if (!form.modelId) {
+      setFormError("Model is required");
+      return;
+    }
+    if (!form.bodyTypeId) {
+      setFormError("Body type is required");
+      return;
+    }
+    if (!form.fuelTypeId) {
+      setFormError("Fuel type is required");
+      return;
+    }
+    if (!form.pricePerDay) {
+      setFormError("Price per day is required");
+      return;
+    }
+    if (!form.location.trim()) {
+      setFormError("Location is required");
+      return;
+    }
 
     setSubmitting(true);
     setFormError(null);
@@ -295,9 +366,13 @@ export default function AdminAllCarsPage() {
         isAC: form.isAC,
         isWithDriver: form.isWithDriver,
         isAvailable: form.isAvailable,
-        ...(form.engineCapacity ? { engineCapacity: Number(form.engineCapacity) } : {}),
+        ...(form.engineCapacity
+          ? { engineCapacity: Number(form.engineCapacity) }
+          : {}),
         ...(form.color.trim() ? { color: form.color.trim() } : {}),
-        ...(form.registrationNo.trim() ? { registrationNo: form.registrationNo.trim() } : {}),
+        ...(form.registrationNo.trim()
+          ? { registrationNo: form.registrationNo.trim() }
+          : {}),
       };
 
       if (editing) {
@@ -330,6 +405,63 @@ export default function AdminAllCarsPage() {
       // swallow
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const openImagesDialog = (car: ApiCar) => {
+    setImagesCar(car);
+    setImagesDialogOpen(true);
+  };
+
+  const handleUploadImages = async (files: FileList) => {
+    if (!imagesCar) return;
+    setUploadingImages(true);
+    try {
+      const formData = new FormData();
+      Array.from(files).forEach((f) => formData.append("images", f));
+      const res = await uploadCarImagesAction(imagesCar.id, formData);
+      const newImages: CarImage[] = res.data ?? [];
+      const updated = { ...imagesCar, images: [...(imagesCar.images ?? []), ...newImages] };
+      setImagesCar(updated);
+      setCars((prev) => prev.map((c) => (c.id === imagesCar.id ? updated : c)));
+    } catch {
+      // swallow
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
+  const handleSetPrimary = async (imageId: string) => {
+    if (!imagesCar) return;
+    setImageActionId(imageId);
+    try {
+      await setCarImagePrimaryAction(imageId);
+      const updated = {
+        ...imagesCar,
+        images: imagesCar.images.map((img) => ({ ...img, isPrimary: img.id === imageId })),
+      };
+      setImagesCar(updated);
+      setCars((prev) => prev.map((c) => (c.id === imagesCar.id ? updated : c)));
+    } catch {
+      // swallow
+    } finally {
+      setImageActionId(null);
+    }
+  };
+
+  const handleDeleteImage = async (imageId: string) => {
+    if (!imagesCar) return;
+    setImageActionId(imageId);
+    try {
+      await deleteCarImageAction(imageId);
+      const remaining = imagesCar.images.filter((img) => img.id !== imageId);
+      const updated = { ...imagesCar, images: remaining };
+      setImagesCar(updated);
+      setCars((prev) => prev.map((c) => (c.id === imagesCar.id ? updated : c)));
+    } catch {
+      // swallow
+    } finally {
+      setImageActionId(null);
     }
   };
 
@@ -404,7 +536,9 @@ export default function AdminAllCarsPage() {
                   <X size={13} /> Clear
                 </Button>
               )}
-              <span className="text-xs text-gray-500 ml-auto">{total} total</span>
+              <span className="text-xs text-gray-500 ml-auto">
+                {total} total
+              </span>
             </div>
 
             {showFilters && (
@@ -416,7 +550,9 @@ export default function AdminAllCarsPage() {
                   <SelectContent>
                     <SelectItem value="">All brands</SelectItem>
                     {brands.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -428,38 +564,55 @@ export default function AdminAllCarsPage() {
                   <SelectContent>
                     <SelectItem value="">All models</SelectItem>
                     {allModels
-                      .filter((m) => !filterBrandId || m.brandId === filterBrandId)
+                      .filter(
+                        (m) => !filterBrandId || m.brandId === filterBrandId,
+                      )
                       .map((m) => (
-                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                        <SelectItem key={m.id} value={m.id}>
+                          {m.name}
+                        </SelectItem>
                       ))}
                   </SelectContent>
                 </Select>
 
-                <Select value={filterBodyTypeId} onValueChange={setFilterBodyTypeId}>
+                <Select
+                  value={filterBodyTypeId}
+                  onValueChange={setFilterBodyTypeId}
+                >
                   <SelectTrigger className="text-xs h-8">
                     <SelectValue placeholder="Body type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">All body types</SelectItem>
                     {bodyTypes.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
 
-                <Select value={filterFuelTypeId} onValueChange={setFilterFuelTypeId}>
+                <Select
+                  value={filterFuelTypeId}
+                  onValueChange={setFilterFuelTypeId}
+                >
                   <SelectTrigger className="text-xs h-8">
                     <SelectValue placeholder="Fuel type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">All fuel types</SelectItem>
                     {fuelTypes.map((f) => (
-                      <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                      <SelectItem key={f.id} value={f.id}>
+                        {f.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
 
-                <Select value={filterTransmission} onValueChange={setFilterTransmission}>
+                <Select
+                  value={filterTransmission}
+                  onValueChange={setFilterTransmission}
+                >
                   <SelectTrigger className="text-xs h-8">
                     <SelectValue placeholder="Transmission" />
                   </SelectTrigger>
@@ -470,7 +623,10 @@ export default function AdminAllCarsPage() {
                   </SelectContent>
                 </Select>
 
-                <Select value={filterRentalType} onValueChange={setFilterRentalType}>
+                <Select
+                  value={filterRentalType}
+                  onValueChange={setFilterRentalType}
+                >
                   <SelectTrigger className="text-xs h-8">
                     <SelectValue placeholder="Rental type" />
                   </SelectTrigger>
@@ -482,7 +638,10 @@ export default function AdminAllCarsPage() {
                   </SelectContent>
                 </Select>
 
-                <Select value={filterAvailable} onValueChange={setFilterAvailable}>
+                <Select
+                  value={filterAvailable}
+                  onValueChange={setFilterAvailable}
+                >
                   <SelectTrigger className="text-xs h-8">
                     <SelectValue placeholder="Availability" />
                   </SelectTrigger>
@@ -506,21 +665,34 @@ export default function AdminAllCarsPage() {
                   <th className="px-5 py-3 font-semibold">Year</th>
                   <th className="px-5 py-3 font-semibold">Transmission</th>
                   <th className="px-5 py-3 font-semibold">Rental</th>
-                  <th className="px-5 py-3 font-semibold text-right">Price/Day</th>
+                  <th className="px-5 py-3 font-semibold text-right">
+                    Price/Day
+                  </th>
                   <th className="px-5 py-3 font-semibold">Status</th>
-                  <th className="px-5 py-3 font-semibold text-right">Actions</th>
+                  <th className="px-5 py-3 font-semibold text-right">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="px-5 py-12 text-center text-gray-400">
-                      <Loader2 size={18} className="animate-spin inline-block" />
+                    <td
+                      colSpan={8}
+                      className="px-5 py-12 text-center text-gray-400"
+                    >
+                      <Loader2
+                        size={18}
+                        className="animate-spin inline-block"
+                      />
                     </td>
                   </tr>
                 ) : cars.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-5 py-12 text-center text-gray-400">
+                    <td
+                      colSpan={8}
+                      className="px-5 py-12 text-center text-gray-400"
+                    >
                       No cars found.
                     </td>
                   </tr>
@@ -547,9 +719,13 @@ export default function AdminAllCarsPage() {
                             </div>
                           )}
                           <div>
-                            <p className="font-medium text-gray-900 leading-none">{car.name}</p>
+                            <p className="font-medium text-gray-900 leading-none">
+                              {car.name}
+                            </p>
                             {car.location && (
-                              <p className="text-[11px] text-gray-400 mt-0.5">{car.location}</p>
+                              <p className="text-[11px] text-gray-400 mt-0.5">
+                                {car.location}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -567,15 +743,23 @@ export default function AdminAllCarsPage() {
                             />
                           )}
                           <div>
-                            <p className="text-gray-900 font-medium leading-none">{getBrandName(car)}</p>
-                            <p className="text-[11px] text-gray-400 mt-0.5">{getModelName(car)}</p>
+                            <p className="text-gray-900 font-medium leading-none">
+                              {getBrandName(car)}
+                            </p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">
+                              {getModelName(car)}
+                            </p>
                           </div>
                         </div>
                       </td>
                       <td className="px-5 py-3 text-gray-600">{car.year}</td>
                       <td className="px-5 py-3">
-                        <Badge variant="outline" className="text-[11px] font-normal">
-                          {TRANSMISSION_LABELS[car.transmission] ?? car.transmission}
+                        <Badge
+                          variant="outline"
+                          className="text-[11px] font-normal"
+                        >
+                          {TRANSMISSION_LABELS[car.transmission] ??
+                            car.transmission}
                         </Badge>
                       </td>
                       <td className="px-5 py-3 text-gray-600 text-[12px]">
@@ -613,6 +797,14 @@ export default function AdminAllCarsPage() {
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
                             <Trash2 size={14} />
+                          </Button>
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            onClick={() => openImagesDialog(car)}
+                            title="Manage Images"
+                          >
+                            <ImagePlus size={14} />
                           </Button>
                         </div>
                       </td>
@@ -659,11 +851,15 @@ export default function AdminAllCarsPage() {
           <form onSubmit={submitForm} className="flex flex-col gap-4">
             {/* Row 1: Name */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-gray-700">Car Name</label>
+              <label className="text-xs font-medium text-gray-700">
+                Car Name
+              </label>
               <Input
                 autoFocus
                 value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, name: e.target.value }))
+                }
                 placeholder="e.g. Corolla 2022"
               />
             </div>
@@ -671,23 +867,31 @@ export default function AdminAllCarsPage() {
             {/* Row 2: Brand + Model */}
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-700">Brand</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Brand
+                </label>
                 <Select
                   value={form.brandId}
-                  onValueChange={(v) => setForm((f) => ({ ...f, brandId: v, modelId: "" }))}
+                  onValueChange={(v) =>
+                    setForm((f) => ({ ...f, brandId: v, modelId: "" }))
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select brand" />
                   </SelectTrigger>
                   <SelectContent>
                     {brands.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-700">Model</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Model
+                </label>
                 <Select
                   value={form.modelId}
                   onValueChange={(v) => setForm((f) => ({ ...f, modelId: v }))}
@@ -698,7 +902,9 @@ export default function AdminAllCarsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {filteredModels.map((m) => (
-                      <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -708,33 +914,45 @@ export default function AdminAllCarsPage() {
             {/* Row 3: Body Type + Fuel Type */}
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-700">Body Type</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Body Type
+                </label>
                 <Select
                   value={form.bodyTypeId}
-                  onValueChange={(v) => setForm((f) => ({ ...f, bodyTypeId: v }))}
+                  onValueChange={(v) =>
+                    setForm((f) => ({ ...f, bodyTypeId: v }))
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select body type" />
                   </SelectTrigger>
                   <SelectContent>
                     {bodyTypes.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-700">Fuel Type</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Fuel Type
+                </label>
                 <Select
                   value={form.fuelTypeId}
-                  onValueChange={(v) => setForm((f) => ({ ...f, fuelTypeId: v }))}
+                  onValueChange={(v) =>
+                    setForm((f) => ({ ...f, fuelTypeId: v }))
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select fuel type" />
                   </SelectTrigger>
                   <SelectContent>
                     {fuelTypes.map((f) => (
-                      <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                      <SelectItem key={f.id} value={f.id}>
+                        {f.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -744,29 +962,39 @@ export default function AdminAllCarsPage() {
             {/* Row 4: Year + Seats + Transmission */}
             <div className="grid grid-cols-3 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-700">Year</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Year
+                </label>
                 <Input
                   type="number"
                   value={form.year}
-                  onChange={(e) => setForm((f) => ({ ...f, year: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, year: e.target.value }))
+                  }
                   placeholder="2022"
                   min={1990}
                   max={new Date().getFullYear() + 1}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-700">Seats</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Seats
+                </label>
                 <Input
                   type="number"
                   value={form.seats}
-                  onChange={(e) => setForm((f) => ({ ...f, seats: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, seats: e.target.value }))
+                  }
                   placeholder="5"
                   min={1}
                   max={20}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-700">Transmission</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Transmission
+                </label>
                 <Select
                   value={form.transmission}
                   onValueChange={(v: "AUTOMATIC" | "MANUAL") =>
@@ -787,17 +1015,23 @@ export default function AdminAllCarsPage() {
             {/* Row 5: Price + Rental Type */}
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-700">Price Per Day (৳)</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Price Per Day (৳)
+                </label>
                 <Input
                   type="number"
                   value={form.pricePerDay}
-                  onChange={(e) => setForm((f) => ({ ...f, pricePerDay: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, pricePerDay: e.target.value }))
+                  }
                   placeholder="5000"
                   min={0}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-700">Rental Type</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Rental Type
+                </label>
                 <Select
                   value={form.rentalType}
                   onValueChange={(v: "ANY" | "PER_DAY" | "PER_HOUR") =>
@@ -819,21 +1053,29 @@ export default function AdminAllCarsPage() {
             {/* Row 6: Mileage + Engine Capacity */}
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-700">Mileage (km)</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Mileage (km)
+                </label>
                 <Input
                   type="number"
                   value={form.mileage}
-                  onChange={(e) => setForm((f) => ({ ...f, mileage: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, mileage: e.target.value }))
+                  }
                   placeholder="15000"
                   min={0}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-700">Engine Capacity (cc)</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Engine Capacity (cc)
+                </label>
                 <Input
                   type="number"
                   value={form.engineCapacity}
-                  onChange={(e) => setForm((f) => ({ ...f, engineCapacity: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, engineCapacity: e.target.value }))
+                  }
                   placeholder="1600"
                   min={0}
                 />
@@ -843,18 +1085,26 @@ export default function AdminAllCarsPage() {
             {/* Row 7: Color + Registration No */}
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-700">Color</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Color
+                </label>
                 <Input
                   value={form.color}
-                  onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, color: e.target.value }))
+                  }
                   placeholder="Silver"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-700">Registration No</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Registration No
+                </label>
                 <Input
                   value={form.registrationNo}
-                  onChange={(e) => setForm((f) => ({ ...f, registrationNo: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, registrationNo: e.target.value }))
+                  }
                   placeholder="DH-1234"
                 />
               </div>
@@ -862,10 +1112,14 @@ export default function AdminAllCarsPage() {
 
             {/* Row 8: Location */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-gray-700">Location</label>
+              <label className="text-xs font-medium text-gray-700">
+                Location
+              </label>
               <Input
                 value={form.location}
-                onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, location: e.target.value }))
+                }
                 placeholder="Banani, Dhaka"
               />
             </div>
@@ -876,7 +1130,9 @@ export default function AdminAllCarsPage() {
                 <input
                   type="checkbox"
                   checked={form.isAC}
-                  onChange={(e) => setForm((f) => ({ ...f, isAC: e.target.checked }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, isAC: e.target.checked }))
+                  }
                   className="rounded"
                 />
                 Air Conditioned
@@ -885,7 +1141,9 @@ export default function AdminAllCarsPage() {
                 <input
                   type="checkbox"
                   checked={form.isWithDriver}
-                  onChange={(e) => setForm((f) => ({ ...f, isWithDriver: e.target.checked }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, isWithDriver: e.target.checked }))
+                  }
                   className="rounded"
                 />
                 With Driver
@@ -894,7 +1152,9 @@ export default function AdminAllCarsPage() {
                 <input
                   type="checkbox"
                   checked={form.isAvailable}
-                  onChange={(e) => setForm((f) => ({ ...f, isAvailable: e.target.checked }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, isAvailable: e.target.checked }))
+                  }
                   className="rounded"
                 />
                 Available
@@ -933,6 +1193,98 @@ export default function AdminAllCarsPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Images dialog */}
+      <Dialog open={imagesDialogOpen} onOpenChange={setImagesDialogOpen}>
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Manage Images — {imagesCar?.name}</DialogTitle>
+          </DialogHeader>
+
+          {/* Upload */}
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-medium text-gray-700">Upload Images</label>
+            <label className="flex items-center gap-2 cursor-pointer border border-dashed border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-500 hover:bg-gray-50 transition-colors">
+              {uploadingImages ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" /> Uploading…
+                </>
+              ) : (
+                <>
+                  <ImagePlus size={14} /> Choose files
+                </>
+              )}
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                disabled={uploadingImages}
+                onChange={(e) => e.target.files && handleUploadImages(e.target.files)}
+              />
+            </label>
+          </div>
+
+          {/* Image grid */}
+          {imagesCar && imagesCar.images.length > 0 ? (
+            <div className="grid grid-cols-3 gap-3 mt-2">
+              {imagesCar.images.map((img) => (
+                <div key={img.id} className="relative group rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                  <Image
+                    src={img.url}
+                    alt="car"
+                    width={160}
+                    height={110}
+                    className="w-full h-24 object-cover"
+                    unoptimized
+                  />
+                  {img.isPrimary && (
+                    <span className="absolute top-1 left-1 bg-yellow-400 text-yellow-900 text-[10px] font-semibold px-1.5 py-0.5 rounded">
+                      Primary
+                    </span>
+                  )}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    {!img.isPrimary && (
+                      <button
+                        title="Set as primary"
+                        disabled={imageActionId === img.id}
+                        onClick={() => handleSetPrimary(img.id)}
+                        className="p-1.5 bg-white rounded-full text-yellow-600 hover:text-yellow-700 disabled:opacity-50"
+                      >
+                        {imageActionId === img.id ? (
+                          <Loader2 size={13} className="animate-spin" />
+                        ) : (
+                          <Star size={13} />
+                        )}
+                      </button>
+                    )}
+                    <button
+                      title="Delete image"
+                      disabled={imageActionId === img.id}
+                      onClick={() => handleDeleteImage(img.id)}
+                      className="p-1.5 bg-white rounded-full text-red-600 hover:text-red-700 disabled:opacity-50"
+                    >
+                      {imageActionId === img.id ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={13} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 text-center py-6">No images yet.</p>
+          )}
+
+          <DialogFooter className="mt-2">
+            <Button variant="outline" onClick={() => setImagesDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

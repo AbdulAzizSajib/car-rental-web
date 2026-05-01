@@ -10,5 +10,5 @@ export interface CarImage {
 }
 
 export const setCarImagePrimaryAction = async (imageId: string) => {
-  return httpClient.patch<CarImage>(`/cars/images/${imageId}/primary`);
+  return httpClient.patch<CarImage>(`/cars/images/${imageId}/primary`, {});
 };

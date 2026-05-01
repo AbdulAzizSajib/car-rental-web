@@ -1,7 +1,6 @@
 'use client';
 
 import { Heart, MapPin } from 'lucide-react';
-import { useState } from 'react';
 import { ApiCar } from '@/src/types/car.types';
 
 function resolveName(val: string | { name: string } | null | undefined): string {
@@ -22,74 +21,82 @@ export function VehicleCard({
   isFavorite = false,
   onFavoriteToggle,
 }: VehicleCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
   const primaryImage = car.images.find((img) => img.isPrimary)?.url ?? car.images[0]?.url;
+  const brandName = resolveName(car.brand);
+  const modelName = resolveName(car.model);
 
   return (
     <div
-      className="bg-white rounded-xl border border-gray-100 overflow-hidden cursor-pointer transition-shadow hover:shadow-md"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className="group bg-white rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+      style={{ border: '1px solid #ede8df' }}
       onClick={() => onCardClick(car)}
     >
-      {/* Top meta row */}
-      <div className="flex items-center justify-between px-4 pt-3">
-        <div className="flex items-center gap-3 text-xs text-gray-500">
-          <span className="flex items-center gap-1">
-            <MapPin size={12} />
-            {car.location}
-          </span>
-          <span className="capitalize text-gray-400">{resolveName(car.brand)}</span>
-        </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onFavoriteToggle?.(car.id);
-          }}
-          className="p-1 -m-1"
-          aria-label="Toggle favorite"
-        >
-          <Heart
-            size={18}
-            className={
-              isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-300 hover:text-gray-400'
-            }
-          />
-        </button>
-      </div>
-
-      {/* Image */}
-      <div className="relative h-36 flex items-center justify-center overflow-hidden px-4">
+      {/* Image area */}
+      <div className="relative h-44 bg-gray-50 overflow-hidden">
         {primaryImage ? (
           <img
             src={primaryImage}
             alt={car.name}
-            className="w-full h-full object-contain transition-transform duration-300"
-            style={{ transform: isHovered ? 'scale(1.05)' : 'scale(1)' }}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <div
-            className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg transition-transform duration-300"
-            style={{ transform: isHovered ? 'scale(1.05)' : 'scale(1)' }}
-          >
-            <span className="text-gray-300 text-xs">{car.year} · {car.color ?? resolveName(car.brand)}</span>
+          <div className="w-full h-full flex items-center justify-center">
+            <span className="text-gray-300 text-xs">{car.year} · {car.color ?? brandName}</span>
           </div>
         )}
+
+        {/* Top overlay badges */}
+        <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1 text-[11px] font-medium text-gray-700 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm">
+              <MapPin size={10} className="text-gray-400" />
+              {car.location}
+            </span>
+            {brandName && (
+              <span className="text-[11px] font-medium text-gray-700 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm">
+                {brandName}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onFavoriteToggle?.(car.id);
+            }}
+            className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-white transition-colors"
+            aria-label="Toggle favorite"
+          >
+            <Heart
+              size={14}
+              className={isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}
+            />
+          </button>
+        </div>
       </div>
 
-      {/* Bottom info */}
-      <div className="px-4 pb-4 pt-2 flex items-end justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="font-semibold text-[15px] text-gray-900 truncate">
-            {car.name}
-          </h3>
-          <p className="text-xs text-gray-500 truncate">{resolveName(car.model)}</p>
-        </div>
-        <div className="text-right shrink-0">
-          <span className="text-base font-semibold text-gray-900">
-            ৳{car.pricePerDay.toLocaleString()}
+      {/* Info */}
+      <div className="px-4 py-3">
+        <h3 className="font-bold text-[15px] text-gray-900 truncate leading-tight">
+          {car.name}
+        </h3>
+        <p className="text-xs text-gray-400 truncate mt-0.5">{modelName}</p>
+
+        <div className="mt-3 flex items-center justify-between">
+          <div>
+            <span className="text-lg font-bold text-gray-900">
+              ৳{car.pricePerDay.toLocaleString()}
+            </span>
+            <span className="text-xs text-gray-400"> / day</span>
+          </div>
+          <span
+            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+              car.isAvailable
+                ? 'bg-green-50 text-green-700'
+                : 'bg-red-50 text-red-500'
+            }`}
+          >
+            {car.isAvailable ? 'Available' : 'Unavailable'}
           </span>
-          <span className="text-xs text-gray-400"> / day</span>
         </div>
       </div>
     </div>

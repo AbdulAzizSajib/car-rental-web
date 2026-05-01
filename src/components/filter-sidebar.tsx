@@ -82,13 +82,22 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
   });
 
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [brandPage, setBrandPage] = useState(1);
+  const [brandTotalPages, setBrandTotalPages] = useState(1);
+  const [loadingMoreBrands, setLoadingMoreBrands] = useState(false);
   const [allModels, setAllModels] = useState<CarModel[]>([]);
   const [bodyTypeOptions, setBodyTypeOptions] = useState<BodyType[]>([]);
   const [fuelTypeOptions, setFuelTypeOptions] = useState<FuelType[]>([]);
 
+  const BRAND_LIMIT = 10;
+
   useEffect(() => {
-    getBrandsAction()
-      .then((res) => setBrands(res.data ?? []))
+    getBrandsAction({ page: 1, limit: BRAND_LIMIT })
+      .then((res) => {
+        setBrands(res.data ?? []);
+        setBrandPage(1);
+        setBrandTotalPages(res.meta?.totalPages ?? 1);
+      })
       .catch(() => {});
     getModelsAction()
       .then((res) => setAllModels(res.data ?? []))
@@ -101,9 +110,24 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
       .catch(() => {});
   }, []);
 
+  const loadMoreBrands = async () => {
+    const nextPage = brandPage + 1;
+    setLoadingMoreBrands(true);
+    try {
+      const res = await getBrandsAction({ page: nextPage, limit: BRAND_LIMIT });
+      setBrands((prev) => [...prev, ...(res.data ?? [])]);
+      setBrandPage(nextPage);
+      setBrandTotalPages(res.meta?.totalPages ?? brandTotalPages);
+    } catch {
+      // swallow
+    } finally {
+      setLoadingMoreBrands(false);
+    }
+  };
+
   const filteredModels = filters.brandId
     ? allModels.filter((m) => m.brandId === filters.brandId)
-    : allModels;
+    : [];
 
   const update = (next: FilterState) => {
     setFilters(next);
@@ -267,27 +291,37 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
           onToggle={() => toggleSection("carBrand")}
         />
         {openSections.carBrand && (
-          <div className="mt-3 space-y-2 grid grid-cols-1 md:grid-cols-2">
+          <div className="mt-3">
             {brands.length === 0 ? (
               <p className="text-xs text-gray-400">Loading...</p>
             ) : (
-              brands.map((brand) => (
-                <label
-                  key={brand.id}
-                  className="flex items-center justify-between cursor-pointer group"
-                >
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      checked={filters.brandId === brand.id}
-                      onCheckedChange={() => selectBrand(brand.id)}
-                    />
-                    <span className="text-sm text-gray-700 group-hover:text-gray-900">
-                      {brand.name}
-                    </span>
-                  </div>
-                  {/* <span className="text-[11px] text-gray-400">{brand._count.cars}</span> */}
-                </label>
-              ))
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2">
+                  {brands.map((brand) => (
+                    <label
+                      key={brand.id}
+                      className="flex items-center gap-2 cursor-pointer group"
+                    >
+                      <Checkbox
+                        checked={filters.brandId === brand.id}
+                        onCheckedChange={() => selectBrand(brand.id)}
+                      />
+                      <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                        {brand.name}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                {brandPage < brandTotalPages && (
+                  <button
+                    onClick={loadMoreBrands}
+                    disabled={loadingMoreBrands}
+                    className="mt-2.5 text-xs text-gray-500 hover:text-gray-800 underline underline-offset-2 disabled:opacity-50"
+                  >
+                    {loadingMoreBrands ? "Loading..." : "Load more"}
+                  </button>
+                )}
+              </>
             )}
           </div>
         )}
@@ -301,18 +335,18 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
           onToggle={() => toggleSection("carModel")}
         />
         {openSections.carModel && (
-          <div className="mt-3 space-y-2 grid grid-cols-1 md:grid-cols-2">
-            {!filters.brandId && allModels.length === 0 ? (
-              <p className="text-xs text-gray-400">Loading...</p>
+          <div className="mt-3">
+            {!filters.brandId ? (
+              <p className="text-xs text-gray-400">Select a brand first.</p>
             ) : filteredModels.length === 0 ? (
               <p className="text-xs text-gray-400">No models found.</p>
             ) : (
-              filteredModels.map((model) => (
-                <label
-                  key={model.id}
-                  className="flex items-center justify-between cursor-pointer group"
-                >
-                  <div className="flex items-center gap-2">
+              <div className="space-y-2">
+                {filteredModels.map((model) => (
+                  <label
+                    key={model.id}
+                    className="flex items-center gap-2 cursor-pointer group"
+                  >
                     <Checkbox
                       checked={filters.modelId === model.id}
                       onCheckedChange={() => selectModel(model.id)}
@@ -320,10 +354,9 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
                     <span className="text-sm text-gray-700 group-hover:text-gray-900">
                       {model.name}
                     </span>
-                  </div>
-                  {/* <span className="text-[11px] text-gray-400">{model._count.cars}</span> */}
-                </label>
-              ))
+                  </label>
+                ))}
+              </div>
             )}
           </div>
         )}
