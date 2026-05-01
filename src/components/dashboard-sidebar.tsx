@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
-import { ChevronDown, ChevronUp, Car } from 'lucide-react';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { ChevronDown, ChevronUp, Car } from "lucide-react";
 
 interface NavGroup {
   key: string;
@@ -14,14 +14,15 @@ interface NavGroup {
 
 const groups: NavGroup[] = [
   {
-    key: 'car',
-    label: 'Car',
+    key: "car",
+    label: "Car",
     icon: Car,
     children: [
-      { href: '/admin/cars/brands', label: 'Brand' },
-      { href: '/admin/cars/models', label: 'Cars Model' },
-      { href: '/admin/cars/body-types', label: 'Body Types' },
-      { href: '/admin/cars/fuel-types', label: 'Fuel Types' },
+      { href: "/admin/cars/all", label: "All Cars" },
+      { href: "/admin/cars/brands", label: "Brand" },
+      { href: "/admin/cars/models", label: "Cars Model" },
+      { href: "/admin/cars/body-types", label: "Body Types" },
+      { href: "/admin/cars/fuel-types", label: "Fuel Types" },
     ],
   },
 ];
@@ -65,7 +66,7 @@ export function DashboardSidebar() {
     setOpenGroups((s) => ({ ...s, [key]: !s[key] }));
 
   const isActive = (href: string) =>
-    pathname === href || pathname?.startsWith(href + '/');
+    pathname === href || pathname?.startsWith(href + "/");
 
   return (
     <div className="bg-white">
@@ -93,8 +94,8 @@ export function DashboardSidebar() {
                       href={child.href}
                       className={`px-3 py-2 rounded-md text-sm transition-colors ${
                         active
-                          ? 'bg-[#c9a84c] text-white'
-                          : 'text-gray-700 hover:bg-gray-100'
+                          ? "bg-[#c9a84c] text-white"
+                          : "text-gray-700 hover:bg-gray-100"
                       }`}
                     >
                       {child.label}

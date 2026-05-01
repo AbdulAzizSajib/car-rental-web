@@ -22,23 +22,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/src/components/ui/alert-dialog";
-import { Brand } from "@/src/types/car.types";
-import { getBrandsAction } from "@/src/services/cars/brand/getBrands.action";
-import { createBrandAction } from "@/src/services/cars/brand/createBrand.action";
-import { updateBrandAction } from "@/src/services/cars/brand/updateBrand.action";
-import { deleteBrandAction } from "@/src/services/cars/brand/deleteBrand.action";
+import { FuelType } from "@/src/types/car.types";
+import { getFuelTypesAction } from "@/src/services/cars/fuelTypes/getFuelTypes.action";
+import { updateFuelTypeAction } from "@/src/services/cars/fuelTypes/updateFuelType.action";
+import { createFuelTypeAction } from "@/src/services/cars/fuelTypes/createFuelType.action";
+import { deleteFuelTypeAction } from "@/src/services/cars/fuelTypes/deleteFuelType.action";
 
 const PAGE_SIZE = 10;
 
 interface FormState {
   name: string;
-  logo: string;
+  image: string;
 }
 
-const emptyForm: FormState = { name: "", logo: "" };
+const emptyForm: FormState = { name: "", image: "" };
 
-export default function AdminBrandsPage() {
-  const [brands, setBrands] = useState<Brand[]>([]);
+export default function AdminFuelTypesPage() {
+  const [fuelTypes, setFuelTypes] = useState<FuelType[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -46,28 +46,28 @@ export default function AdminBrandsPage() {
   const [loading, setLoading] = useState(true);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<Brand | null>(null);
+  const [editing, setEditing] = useState<FuelType | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const [deleteTarget, setDeleteTarget] = useState<Brand | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<FuelType | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  const fetchBrands = useCallback(async () => {
+  const fetchFuelTypes = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getBrandsAction({
+      const res = await getFuelTypesAction({
         page,
         limit: PAGE_SIZE,
         search: debouncedSearch || undefined,
       });
-      setBrands(res.data ?? []);
+      setFuelTypes(res.data ?? []);
       setTotal(res.meta?.total ?? res.data?.length ?? 0);
     } catch {
-      setBrands([]);
+      setFuelTypes([]);
       setTotal(0);
     } finally {
       setLoading(false);
@@ -84,8 +84,8 @@ export default function AdminBrandsPage() {
   }, [debouncedSearch]);
 
   useEffect(() => {
-    fetchBrands();
-  }, [fetchBrands]);
+    fetchFuelTypes();
+  }, [fetchFuelTypes]);
 
   const openCreate = () => {
     setEditing(null);
@@ -94,9 +94,9 @@ export default function AdminBrandsPage() {
     setDialogOpen(true);
   };
 
-  const openEdit = (brand: Brand) => {
-    setEditing(brand);
-    setForm({ name: brand.name, logo: brand.logo ?? "" });
+  const openEdit = (fuelType: FuelType) => {
+    setEditing(fuelType);
+    setForm({ name: fuelType.name, image: fuelType.image ?? "" });
     setFormError(null);
     setDialogOpen(true);
   };
@@ -112,15 +112,15 @@ export default function AdminBrandsPage() {
     try {
       const payload = {
         name: form.name.trim(),
-        ...(form.logo.trim() ? { logo: form.logo.trim() } : {}),
+        ...(form.image.trim() ? { image: form.image.trim() } : {}),
       };
       if (editing) {
-        await updateBrandAction(editing.id, payload);
+        await updateFuelTypeAction(editing.id, payload);
       } else {
-        await createBrandAction(payload);
+        await createFuelTypeAction(payload);
       }
       setDialogOpen(false);
-      await fetchBrands();
+      await fetchFuelTypes();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setFormError(msg);
@@ -133,12 +133,12 @@ export default function AdminBrandsPage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteBrandAction(deleteTarget.id);
+      await deleteFuelTypeAction(deleteTarget.id);
       setDeleteTarget(null);
-      if (brands.length === 1 && page > 1) {
+      if (fuelTypes.length === 1 && page > 1) {
         setPage((p) => p - 1);
       } else {
-        await fetchBrands();
+        await fetchFuelTypes();
       }
     } catch {
       // swallow; could surface toast
@@ -153,17 +153,17 @@ export default function AdminBrandsPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <span className="text-[11px] uppercase tracking-[.18em] font-semibold text-gray-500">
-              Cars / Brands
+              Cars / Fuel Types
             </span>
             <h1 className="font-['Bebas_Neue'] text-3xl tracking-wide text-gray-900 mt-1">
-              Manage Brands
+              Manage Fuel Types
             </h1>
           </div>
           <Button
             onClick={openCreate}
             className="bg-gray-900 hover:bg-gray-800 text-white"
           >
-            <Plus size={16} /> New Brand
+            <Plus size={16} /> New Fuel Type
           </Button>
         </div>
 
@@ -178,7 +178,7 @@ export default function AdminBrandsPage() {
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search brands…"
+                placeholder="Search fuel types…"
                 className="pl-9"
               />
             </div>
@@ -190,10 +190,9 @@ export default function AdminBrandsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[11px] uppercase tracking-wider text-gray-500 border-b border-[#ede8df]">
-                  <th className="px-5 py-3 font-semibold">Brand</th>
-                  <th className="px-5 py-3 font-semibold">Logo</th>
+                  <th className="px-5 py-3 font-semibold">Fuel Type</th>
+                  <th className="px-5 py-3 font-semibold">Image</th>
                   <th className="px-5 py-3 font-semibold text-right">Cars</th>
-                  <th className="px-5 py-3 font-semibold text-right">Models</th>
                   <th className="px-5 py-3 font-semibold text-right">
                     Actions
                   </th>
@@ -212,29 +211,29 @@ export default function AdminBrandsPage() {
                       />
                     </td>
                   </tr>
-                ) : brands.length === 0 ? (
+                ) : fuelTypes.length === 0 ? (
                   <tr>
                     <td
                       colSpan={5}
                       className="px-5 py-12 text-center text-gray-400"
                     >
-                      No brands found.
+                      No fuel types found.
                     </td>
                   </tr>
                 ) : (
-                  brands.map((b) => (
+                  fuelTypes.map((ft) => (
                     <tr
-                      key={b.id}
+                      key={ft.id}
                       className="border-b border-[#ede8df] last:border-0 hover:bg-[#faf8f4]"
                     >
                       <td className="px-5 py-3 font-medium text-gray-900">
-                        {b.name}
+                        {ft.name}
                       </td>
                       <td className="px-5 py-3">
-                        {b.logo ? (
+                        {ft.image ? (
                           <Image
-                            src={b.logo}
-                            alt={b.name}
+                            src={ft.image}
+                            alt={ft.name}
                             width={36}
                             height={36}
                             className="w-9 h-9 rounded-md object-cover bg-gray-50"
@@ -245,17 +244,15 @@ export default function AdminBrandsPage() {
                         )}
                       </td>
                       <td className="px-5 py-3 text-right text-gray-600">
-                        {b._count?.cars ?? 0}
+                        {ft._count?.cars ?? 0}
                       </td>
-                      <td className="px-5 py-3 text-right text-gray-600">
-                        {b._count?.models ?? 0}
-                      </td>
+
                       <td className="px-5 py-3 text-right">
                         <div className="inline-flex gap-1">
                           <Button
                             size="icon-sm"
                             variant="ghost"
-                            onClick={() => openEdit(b)}
+                            onClick={() => openEdit(ft)}
                             title="Edit"
                           >
                             <Pencil size={14} />
@@ -263,7 +260,7 @@ export default function AdminBrandsPage() {
                           <Button
                             size="icon-sm"
                             variant="ghost"
-                            onClick={() => setDeleteTarget(b)}
+                            onClick={() => setDeleteTarget(ft)}
                             title="Delete"
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
@@ -309,7 +306,9 @@ export default function AdminBrandsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit Brand" : "New Brand"}</DialogTitle>
+            <DialogTitle>
+              {editing ? "Edit Fuel Type" : "New Fuel Type "}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={submitForm} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
@@ -325,12 +324,12 @@ export default function AdminBrandsPage() {
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium text-gray-700">
-                Logo URL
+                Image URL
               </label>
               <Input
-                value={form.logo}
+                value={form.image}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, logo: e.target.value }))
+                  setForm((f) => ({ ...f, image: e.target.value }))
                 }
                 placeholder="https://…"
               />
@@ -376,7 +375,7 @@ export default function AdminBrandsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete brand?</AlertDialogTitle>
+            <AlertDialogTitle>Delete fuel type?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete{" "}
               <span className="font-semibold text-gray-900">

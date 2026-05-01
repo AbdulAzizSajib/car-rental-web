@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, X } from 'lucide-react';
-import { Slider } from '@/src/components/ui/slider';
-import { Checkbox } from '@/src/components/ui/checkbox';
-import { Switch } from '@/src/components/ui/switch';
-import { getBrandsAction } from '@/src/services/cars/getBrands.action';
-import { getModelsAction } from '@/src/services/cars/getModels.action';
-import { getFuelTypesAction } from '@/src/services/cars/getFuelTypes.action';
-import { getBodyTypesAction } from '@/src/services/cars/getBodyTypes.action';
-import { Brand, CarModel, FuelType, BodyType } from '@/src/types/car.types';
+import { useState, useEffect } from "react";
+import { ChevronDown, ChevronUp, X } from "lucide-react";
+import { Slider } from "@/src/components/ui/slider";
+import { Checkbox } from "@/src/components/ui/checkbox";
+import { Switch } from "@/src/components/ui/switch";
+import { getBrandsAction } from "@/src/services/cars/brand/getBrands.action";
+import { getModelsAction } from "@/src/services/cars/getModels.action";
+import { getFuelTypesAction } from "@/src/services/cars/getFuelTypes.action";
+import { getBodyTypesAction } from "@/src/services/cars/getBodyTypes.action";
+import { Brand, CarModel, FuelType, BodyType } from "@/src/types/car.types";
 
 export interface FilterState {
   priceMin: number;
   priceMax: number;
-  rentalType: 'any' | 'perDay' | 'perHour';
+  rentalType: "any" | "perDay" | "perHour";
   availableNow: boolean;
   bodyTypes: string[];
   transmissions: string[];
@@ -26,7 +26,6 @@ export interface FilterState {
 interface FilterSidebarProps {
   onFilterChange: (filters: FilterState) => void;
 }
-
 
 const HISTOGRAM = [
   6, 8, 10, 14, 18, 22, 28, 36, 44, 56, 70, 82, 92, 96, 90, 80, 68, 58, 48, 40,
@@ -61,7 +60,7 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
   const initial: FilterState = {
     priceMin: 0,
     priceMax: 10000,
-    rentalType: 'any',
+    rentalType: "any",
     availableNow: false,
     bodyTypes: [],
     transmissions: [],
@@ -88,10 +87,18 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
   const [fuelTypeOptions, setFuelTypeOptions] = useState<FuelType[]>([]);
 
   useEffect(() => {
-    getBrandsAction().then((res) => setBrands(res.data ?? [])).catch(() => {});
-    getModelsAction().then((res) => setAllModels(res.data ?? [])).catch(() => {});
-    getBodyTypesAction().then((res) => setBodyTypeOptions(res.data ?? [])).catch(() => {});
-    getFuelTypesAction().then((res) => setFuelTypeOptions(res.data ?? [])).catch(() => {});
+    getBrandsAction()
+      .then((res) => setBrands(res.data ?? []))
+      .catch(() => {});
+    getModelsAction()
+      .then((res) => setAllModels(res.data ?? []))
+      .catch(() => {});
+    getBodyTypesAction()
+      .then((res) => setBodyTypeOptions(res.data ?? []))
+      .catch(() => {});
+    getFuelTypesAction()
+      .then((res) => setFuelTypeOptions(res.data ?? []))
+      .catch(() => {});
   }, []);
 
   const filteredModels = filters.brandId
@@ -110,7 +117,7 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
   const reset = () => update(initial);
 
   const togglePill = (
-    category: 'bodyTypes' | 'transmissions' | 'fuelTypes',
+    category: "bodyTypes" | "transmissions" | "fuelTypes",
     value: string,
   ) => {
     const list = filters[category];
@@ -122,7 +129,11 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
 
   const selectBrand = (id: string) => {
     const isSame = filters.brandId === id;
-    update({ ...filters, brandId: isSame ? undefined : id, modelId: undefined });
+    update({
+      ...filters,
+      brandId: isSame ? undefined : id,
+      modelId: undefined,
+    });
   };
 
   const selectModel = (id: string) => {
@@ -146,26 +157,26 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
         <SectionHeader
           title="Rental type"
           open={openSections.rentalType}
-          onToggle={() => toggleSection('rentalType')}
+          onToggle={() => toggleSection("rentalType")}
         />
         {openSections.rentalType && (
           <div className="mt-3 inline-flex border border-gray-200 rounded-md overflow-hidden">
             {(
               [
-                { label: 'Any', value: 'any' },
-                { label: 'Per day', value: 'perDay' },
-                { label: 'Per hour', value: 'perHour' },
+                { label: "Any", value: "any" },
+                { label: "Per day", value: "perDay" },
+                { label: "Per hour", value: "perHour" },
               ] as const
             ).map((opt, i) => (
               <button
                 key={opt.value}
                 onClick={() => update({ ...filters, rentalType: opt.value })}
                 className={`px-3 py-1.5 text-xs transition-colors ${
-                  i > 0 ? 'border-l border-gray-200' : ''
+                  i > 0 ? "border-l border-gray-200" : ""
                 } ${
                   filters.rentalType === opt.value
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                    ? "bg-gray-900 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-50"
                 }`}
               >
                 {opt.label}
@@ -195,7 +206,7 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
         <SectionHeader
           title="Price range / day"
           open={openSections.priceRange}
-          onToggle={() => toggleSection('priceRange')}
+          onToggle={() => toggleSection("priceRange")}
         />
         {openSections.priceRange && (
           <div className="mt-4">
@@ -203,12 +214,13 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
               {HISTOGRAM.map((h, i) => {
                 const stepValue = (i / HISTOGRAM.length) * 10000;
                 const inRange =
-                  stepValue >= filters.priceMin && stepValue <= filters.priceMax;
+                  stepValue >= filters.priceMin &&
+                  stepValue <= filters.priceMax;
                 return (
                   <div
                     key={i}
                     className={`flex-1 rounded-sm ${
-                      inRange ? 'bg-gray-900' : 'bg-gray-200'
+                      inRange ? "bg-gray-900" : "bg-gray-200"
                     }`}
                     style={{ height: `${h}%` }}
                   />
@@ -227,13 +239,17 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
             />
             <div className="flex items-center justify-between gap-2">
               <div className="flex-1 border border-gray-200 rounded-md px-3 py-1.5 flex items-center justify-between">
-                <span className="text-[10px] tracking-wider text-gray-400 uppercase">From</span>
+                <span className="text-[10px] tracking-wider text-gray-400 uppercase">
+                  From
+                </span>
                 <span className="text-sm font-semibold text-gray-900">
                   ৳{filters.priceMin.toLocaleString()}
                 </span>
               </div>
               <div className="flex-1 border border-gray-200 rounded-md px-3 py-1.5 flex items-center justify-between">
-                <span className="text-[10px] tracking-wider text-gray-400 uppercase">To</span>
+                <span className="text-[10px] tracking-wider text-gray-400 uppercase">
+                  To
+                </span>
                 <span className="text-sm font-semibold text-gray-900">
                   ৳{filters.priceMax.toLocaleString()}
                 </span>
@@ -248,7 +264,7 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
         <SectionHeader
           title="Car brand"
           open={openSections.carBrand}
-          onToggle={() => toggleSection('carBrand')}
+          onToggle={() => toggleSection("carBrand")}
         />
         {openSections.carBrand && (
           <div className="mt-3 space-y-2 grid grid-cols-1 md:grid-cols-2">
@@ -256,7 +272,10 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
               <p className="text-xs text-gray-400">Loading...</p>
             ) : (
               brands.map((brand) => (
-                <label key={brand.id} className="flex items-center justify-between cursor-pointer group">
+                <label
+                  key={brand.id}
+                  className="flex items-center justify-between cursor-pointer group"
+                >
                   <div className="flex items-center gap-2">
                     <Checkbox
                       checked={filters.brandId === brand.id}
@@ -279,7 +298,7 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
         <SectionHeader
           title="Car model"
           open={openSections.carModel}
-          onToggle={() => toggleSection('carModel')}
+          onToggle={() => toggleSection("carModel")}
         />
         {openSections.carModel && (
           <div className="mt-3 space-y-2 grid grid-cols-1 md:grid-cols-2">
@@ -289,7 +308,10 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
               <p className="text-xs text-gray-400">No models found.</p>
             ) : (
               filteredModels.map((model) => (
-                <label key={model.id} className="flex items-center justify-between cursor-pointer group">
+                <label
+                  key={model.id}
+                  className="flex items-center justify-between cursor-pointer group"
+                >
                   <div className="flex items-center gap-2">
                     <Checkbox
                       checked={filters.modelId === model.id}
@@ -312,7 +334,7 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
         <SectionHeader
           title="Body type"
           open={openSections.bodyType}
-          onToggle={() => toggleSection('bodyType')}
+          onToggle={() => toggleSection("bodyType")}
         />
         {openSections.bodyType && (
           <div className="mt-3 grid grid-cols-2 gap-y-2.5 gap-x-3">
@@ -320,10 +342,13 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
               <p className="text-xs text-gray-400">Loading...</p>
             ) : (
               bodyTypeOptions.map((type) => (
-                <label key={type.id} className="flex items-center gap-2 cursor-pointer">
+                <label
+                  key={type.id}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
                   <Checkbox
                     checked={filters.bodyTypes.includes(type.id)}
-                    onCheckedChange={() => togglePill('bodyTypes', type.id)}
+                    onCheckedChange={() => togglePill("bodyTypes", type.id)}
                   />
                   <span className="text-sm text-gray-700">{type.name}</span>
                 </label>
@@ -338,12 +363,12 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
         <SectionHeader
           title="Transmission"
           open={openSections.transmission}
-          onToggle={() => toggleSection('transmission')}
+          onToggle={() => toggleSection("transmission")}
         />
         {openSections.transmission && (
           <div className="mt-3 inline-flex border border-gray-200 rounded-md overflow-hidden">
-            {['Any', 'Automatic', 'Manual'].map((opt, i) => {
-              const isAny = opt === 'Any';
+            {["Any", "Automatic", "Manual"].map((opt, i) => {
+              const isAny = opt === "Any";
               const active = isAny
                 ? filters.transmissions.length === 0
                 : filters.transmissions.includes(opt);
@@ -361,11 +386,11 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
                     })
                   }
                   className={`px-3 py-1.5 text-xs transition-colors ${
-                    i > 0 ? 'border-l border-gray-200' : ''
+                    i > 0 ? "border-l border-gray-200" : ""
                   } ${
                     active
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                      ? "bg-gray-900 text-white"
+                      : "bg-white text-gray-700 hover:bg-gray-50"
                   }`}
                 >
                   {opt}
@@ -381,7 +406,7 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
         <SectionHeader
           title="Fuel type"
           open={openSections.fuelType}
-          onToggle={() => toggleSection('fuelType')}
+          onToggle={() => toggleSection("fuelType")}
         />
         {openSections.fuelType && (
           <div className="mt-3 grid grid-cols-2 gap-y-2.5 gap-x-3">
@@ -389,10 +414,13 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
               <p className="text-xs text-gray-400">Loading...</p>
             ) : (
               fuelTypeOptions.map((type) => (
-                <label key={type.id} className="flex items-center gap-2 cursor-pointer">
+                <label
+                  key={type.id}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
                   <Checkbox
                     checked={filters.fuelTypes.includes(type.id)}
-                    onCheckedChange={() => togglePill('fuelTypes', type.id)}
+                    onCheckedChange={() => togglePill("fuelTypes", type.id)}
                   />
                   <span className="text-sm text-gray-700">{type.name}</span>
                 </label>

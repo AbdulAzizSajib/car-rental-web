@@ -9,5 +9,5 @@ export interface UpdateModelPayload {
 }
 
 export const updateModelAction = async (id: string, payload: UpdateModelPayload) => {
-  return httpClient.put<CarModel>(`/car-models/${id}`, payload);
+  return httpClient.patch<CarModel>(`/car-models/${id}`, payload);
 };

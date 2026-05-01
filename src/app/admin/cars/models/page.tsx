@@ -1,5 +1,4 @@
 "use client";
-import { Select } from "antd";
 import { useEffect, useState, useCallback } from "react";
 import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
@@ -21,13 +20,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/src/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/src/components/ui/select";
 import { Brand, CarModel } from "@/src/types/car.types";
 
 import { getModelsAction } from "@/src/services/cars/models/getmodels.action";
 import { createModelAction } from "@/src/services/cars/models/createModel.action";
 import { updateModelAction } from "@/src/services/cars/models/updateModel.action";
 import { deleteModelAction } from "@/src/services/cars/models/deleteModel.action";
-import { getBrandsAction } from "@/src/services/cars/getBrands.action";
+import { getBrandsAction } from "@/src/services/cars/brand/getBrands.action";
 
 const PAGE_SIZE = 10;
 
@@ -56,8 +62,6 @@ export default function AdminModelsPage() {
   const [deleting, setDeleting] = useState(false);
 
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [brandSearch, setBrandSearch] = useState("");
-  const [brandsLoading, setBrandsLoading] = useState(false);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -79,19 +83,12 @@ export default function AdminModelsPage() {
     }
   }, [page, debouncedSearch]);
 
-  const fetchBrands = useCallback(async (searchVal?: string) => {
-    setBrandsLoading(true);
+  const fetchBrands = useCallback(async () => {
     try {
-      const res = await getBrandsAction({
-        page: 1,
-        limit: 50,
-        search: searchVal || undefined,
-      });
+      const res = await getBrandsAction({ page: 1, limit: 100 });
       setBrands(res.data ?? []);
     } catch {
       setBrands([]);
-    } finally {
-      setBrandsLoading(false);
     }
   }, []);
 
@@ -109,16 +106,13 @@ export default function AdminModelsPage() {
   }, [fetchModels]);
 
   useEffect(() => {
-    const t = setTimeout(() => fetchBrands(brandSearch), 300);
-    return () => clearTimeout(t);
-  }, [brandSearch, fetchBrands]);
+    fetchBrands();
+  }, [fetchBrands]);
 
   const openCreate = () => {
     setEditing(null);
     setForm(emptyForm);
     setFormError(null);
-    setBrandSearch("");
-    fetchBrands();
     setDialogOpen(true);
   };
 
@@ -126,8 +120,6 @@ export default function AdminModelsPage() {
     setEditing(model);
     setForm({ name: model.name, brandId: model.brandId ?? "" });
     setFormError(null);
-    setBrandSearch("");
-    fetchBrands();
     setDialogOpen(true);
   };
 
@@ -348,18 +340,19 @@ export default function AdminModelsPage() {
               <label className="text-xs font-medium text-gray-700">Brand</label>
               <Select
                 value={form.brandId || undefined}
-                onChange={(value) => setForm((f) => ({ ...f, brandId: value }))}
-                placeholder="Select a brand"
-                showSearch
-                filterOption={false}
-                loading={brandsLoading}
-                onSearch={(value) => setBrandSearch(value)}
-                options={brands.map((b) => ({
-                  value: b.id,
-                  label: b.name,
-                }))}
-                className="w-full"
-              />
+                onValueChange={(value) => setForm((f) => ({ ...f, brandId: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a brand" />
+                </SelectTrigger>
+                <SelectContent>
+                  {brands.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             {formError && (
               <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
