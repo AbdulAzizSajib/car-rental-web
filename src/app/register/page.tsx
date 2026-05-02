@@ -4,43 +4,27 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, ArrowRight, Mail, Lock, User, Phone } from 'lucide-react';
 
-export default function RegisterPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [agreed, setAgreed] = useState(false);
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-  });
+const inputClass =
+  'w-full py-3 rounded-sm text-sm bg-white border transition-all outline-none placeholder:text-gray-300 text-gray-900';
+const borderDefault = '#d9d0c1';
+const borderFocus = '#c9a84c';
 
-  const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm((f) => ({ ...f, [key]: e.target.value }));
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
-
-  const inputClass =
-    'w-full py-3 rounded-sm text-sm bg-white border transition-all outline-none placeholder:text-gray-300 text-gray-900';
-  const borderDefault = '#d9d0c1';
-  const borderFocus = '#c9a84c';
-
-  const Field = ({
-    label,
-    icon: Icon,
-    type = 'text',
-    placeholder,
-    value,
-    onChange,
-  }: {
-    label: string;
-    icon: React.ElementType;
-    type?: string;
-    placeholder: string;
-    value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  }) => (
+function Field({
+  label,
+  icon: Icon,
+  type = 'text',
+  placeholder,
+  value,
+  onChange,
+}: {
+  label: string;
+  icon: React.ElementType;
+  type?: string;
+  placeholder: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
     <div className="flex flex-col gap-1.5">
       <label className="text-[11px] uppercase tracking-[.12em] font-semibold text-gray-600">
         {label}
@@ -61,6 +45,24 @@ export default function RegisterPage() {
       </div>
     </div>
   );
+}
+
+export default function RegisterPage() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [agreed, setAgreed] = useState(false);
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+  });
+
+  const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+  };
 
   return (
     <div className="min-h-screen flex" style={{ background: '#ede8df' }}>

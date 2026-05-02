@@ -44,9 +44,8 @@ const axiosInstance = async () => {
 
     const cookieHeader = cookieStore
                                 .getAll()
-                                .map((cookie) => `${cookie.name}=${cookie.value}`)
-                                .join("; ");    
-    // eg Cookie: "accessToken=abc123; refreshToken=def456"
+                                .map((cookie) => `${cookie.name}=${encodeURIComponent(cookie.value)}`)
+                                .join("; ");
 
     const instance = axios.create({
         baseURL : API_BASE_URL,
