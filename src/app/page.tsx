@@ -122,7 +122,6 @@ export default function HomePage() {
   return (
     <div ref={rootRef} className="bg-white custom-scrollbar">
       {/* ─── Hero ─────────────────────────────────────────── */}
-      {/* min-h-[calc(100vh-3.5rem)] */}
       <section className="relative w-full min-h-screen overflow-hidden flex items-center">
         <video
           autoPlay
@@ -135,17 +134,22 @@ export default function HomePage() {
         </video>
         <div className="absolute inset-0 bg-linear-to-r from-black/75 via-black/30 to-black/40" />
         <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-black/10" />
+
+        {/* Left gold line - hidden on mobile, visible on md+ */}
         <div
-          className="hero-side absolute left-0 top-0 w-[3px] h-full z-10"
+          className="hero-side absolute left-0 top-0 w-[3px] h-full z-10 hidden md:block"
           style={{ background: "linear-gradient(to bottom, #c9a84c, #8b5e1a)" }}
         />
-        <span className="hero-side absolute right-10 top-1/2 -translate-y-1/2 rotate-90 origin-center text-[10px] tracking-[.2em] uppercase text-white z-10 whitespace-nowrap select-none">
+
+        {/* Right rotated text - repositioned for mobile */}
+        <span className="hero-side absolute right-4 md:right-10 top-6 md:top-1/2 translate-y-0 md:-translate-y-1/2 rotate-0 md:rotate-90 origin-center text-[8px] md:text-[10px] tracking-[.2em] uppercase text-white z-10 whitespace-nowrap select-none">
           Premium Fleet · Est. 2026
         </span>
 
-        <div className="relative z-10 pl-12 pr-6 py-20 w-full max-w-2xl">
+        {/* Main content - adjusted padding for mobile */}
+        <div className="relative z-10 px-5 sm:px-6 md:pl-12 md:pr-6 py-12 sm:py-16 md:py-20  w-full max-w-2xl">
           <div
-            className="hero-badge mb-6 inline-flex items-center gap-2 border text-[11px] tracking-[.12em] uppercase px-3.5 py-1.5 rounded-sm font-medium"
+            className="hero-badge mb-4 md:mb-6 inline-flex items-center gap-2 border text-[10px] md:text-[11px] tracking-[.12em] uppercase px-2.5 md:px-3.5 py-1 md:py-1.5 rounded-sm font-medium"
             style={{
               background: "rgba(201,168,76,.10)",
               borderColor: "rgba(201,168,76,.35)",
@@ -158,9 +162,10 @@ export default function HomePage() {
             />
             Auto Ultimate
           </div>
+
           <h1
-            className="hero-title font-['Bebas_Neue'] text-white leading-[.92] tracking-[.01em] mb-4"
-            style={{ fontSize: "clamp(3.4rem, 6.5vw, 5.4rem)" }}
+            className="hero-title font-['Bebas_Neue'] text-white leading-[.92] tracking-[.01em] mb-3 md:mb-4"
+            style={{ fontSize: "clamp(2.8rem, 8vw, 5.4rem)" }}
           >
             Drive More,
             <br />
@@ -168,19 +173,23 @@ export default function HomePage() {
             <br />
             Every Time
           </h1>
+
           <div
-            className="hero-divider w-12 h-[2px] mb-5"
+            className="hero-divider w-12 h-[2px] mb-4 md:mb-5"
             style={{ background: "#c9a84c" }}
           />
+
           <p
-            className="hero-sub text-sm font-light leading-relaxed max-w-sm mb-8"
+            className="hero-sub text-xs sm:text-sm font-light leading-relaxed max-w-sm mb-6 md:mb-8"
             style={{ color: "rgba(255,255,255,.55)" }}
           >
             From weekend escapes to cross-city business runs — access a curated
             fleet that moves as fast as your plans change.
           </p>
+
+          {/* Search box - becomes column on mobile, row on sm+ */}
           <div
-            className="hero-search flex items-stretch rounded-md overflow-hidden mb-7 border"
+            className="hero-search flex flex-col sm:flex-row items-stretch rounded-md overflow-hidden mb-6 md:mb-7 border"
             style={{
               background: "rgba(255,255,255,.06)",
               borderColor: "rgba(255,255,255,.12)",
@@ -188,7 +197,7 @@ export default function HomePage() {
             }}
           >
             <div
-              className="flex items-center gap-3 px-4 py-3 flex-1 border-r"
+              className="flex items-center gap-3 px-4 py-3 flex-1 border-b sm:border-b-0 sm:border-r"
               style={{ borderColor: "rgba(255,255,255,.10)" }}
             >
               <MapPin size={14} style={{ color: "#c9a84c", flexShrink: 0 }} />
@@ -203,7 +212,7 @@ export default function HomePage() {
               </div>
             </div>
             <div
-              className="flex items-center gap-3 px-4 py-3 flex-1 border-r"
+              className="flex items-center gap-3 px-4 py-3 flex-1 border-b sm:border-b-0 sm:border-r"
               style={{ borderColor: "rgba(255,255,255,.10)" }}
             >
               <Calendar size={14} style={{ color: "#c9a84c", flexShrink: 0 }} />
@@ -219,27 +228,30 @@ export default function HomePage() {
             </div>
             <Link
               href="/vehicles"
-              className="flex items-center gap-2 px-6 text-[13px] font-medium tracking-[.05em] text-black whitespace-nowrap transition-all hover:opacity-90"
+              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-0 text-[13px] font-medium tracking-[.05em] text-black whitespace-nowrap transition-all hover:opacity-90"
               style={{ background: "#c9a84c" }}
             >
               Search Vehicles <ArrowRight size={14} />
             </Link>
           </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-2">
+
+          {/* Perks - wrap on mobile */}
+          <div className="flex flex-wrap gap-x-4 sm:gap-x-6 gap-y-2">
             {perks.map(({ icon: Icon, label }) => (
               <div
                 key={label}
-                className="hero-perk flex items-center gap-2 text-xs tracking-[.02em]"
+                className="hero-perk flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs tracking-[.02em]"
                 style={{ color: "rgba(255,255,255,.45)" }}
               >
-                <Icon size={12} style={{ color: "#c9a84c" }} />
+                <Icon size={11} style={{ color: "#c9a84c" }} />
                 {label}
               </div>
             ))}
           </div>
         </div>
 
-        <div className="absolute bottom-8 right-16 flex gap-3 z-10">
+        {/* Stats - repositioned for mobile */}
+        <div className="absolute bottom-4 md:bottom-8 left-4 right-4 md:left-auto md:right-16 flex justify-between md:justify-start gap-2 md:gap-3 z-10">
           {[
             { num: "200+", lbl: "Vehicles" },
             { num: "50K+", lbl: "Trips Done" },
@@ -247,18 +259,18 @@ export default function HomePage() {
           ].map(({ num, lbl }) => (
             <div
               key={lbl}
-              className="hero-stat border rounded-md px-5 py-3 text-center"
+              className="hero-stat border rounded-md px-3 sm:px-4 md:px-5 py-2 md:py-3 text-center flex-1 md:flex-initial"
               style={{
                 background: "rgba(255,255,255,.07)",
                 borderColor: "rgba(255,255,255,.10)",
                 backdropFilter: "blur(12px)",
               }}
             >
-              <div className="font-['Bebas_Neue'] text-2xl text-white tracking-wide leading-none">
+              <div className="font-['Bebas_Neue'] text-xl sm:text-2xl md:text-2xl text-white tracking-wide leading-none">
                 {num}
               </div>
               <div
-                className="text-[10px] uppercase tracking-[.1em] mt-1"
+                className="text-[8px] sm:text-[10px] uppercase tracking-[.1em] mt-0.5 sm:mt-1"
                 style={{ color: "rgba(255,255,255,.38)" }}
               >
                 {lbl}
@@ -266,8 +278,10 @@ export default function HomePage() {
             </div>
           ))}
         </div>
+
+        {/* Scroll cue - hidden on mobile, visible on md+ */}
         <div
-          className="scroll-cue absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1.5"
+          className="scroll-cue absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex-col items-center gap-1.5 hidden md:flex"
           style={{ opacity: 0.35 }}
         >
           <span className="text-[10px] uppercase tracking-[.15em] text-white">

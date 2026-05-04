@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp, X } from "lucide-react";
+import { ChevronDown, ChevronUp, X, SlidersHorizontal } from "lucide-react";
 import { Slider } from "@/src/components/ui/slider";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import { Switch } from "@/src/components/ui/switch";
@@ -25,12 +25,25 @@ export interface FilterState {
 
 interface FilterSidebarProps {
   onFilterChange: (filters: FilterState) => void;
+  total?: number;
 }
 
 const HISTOGRAM = [
-  6, 8, 10, 14, 18, 22, 28, 36, 44, 56, 70, 82, 92, 96, 90, 80, 68, 58, 48, 40,
-  34, 28, 24, 20, 18, 16, 14, 12, 10, 8,
+  6, 8, 10, 14, 18, 22, 28, 36, 44, 56, 70, 82, 92, 96, 90, 80, 68, 58, 48,
+  40, 34, 28, 24, 20, 18, 16, 14, 12, 10, 8,
 ];
+
+const initial: FilterState = {
+  priceMin: 0,
+  priceMax: 10000,
+  rentalType: "any",
+  availableNow: false,
+  bodyTypes: [],
+  transmissions: [],
+  fuelTypes: [],
+  brandId: undefined,
+  modelId: undefined,
+};
 
 function SectionHeader({
   title,
@@ -56,114 +69,59 @@ function SectionHeader({
   );
 }
 
-export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
-  const initial: FilterState = {
-    priceMin: 0,
-    priceMax: 10000,
-    rentalType: "any",
-    availableNow: false,
-    bodyTypes: [],
-    transmissions: [],
-    fuelTypes: [],
-    brandId: undefined,
-    modelId: undefined,
-  };
+function activeFilterCount(filters: FilterState): number {
+  let count = 0;
+  if (filters.rentalType !== "any") count++;
+  if (filters.availableNow) count++;
+  if (filters.priceMin !== initial.priceMin || filters.priceMax !== initial.priceMax) count++;
+  if (filters.brandId) count++;
+  if (filters.modelId) count++;
+  count += filters.bodyTypes.length;
+  count += filters.transmissions.length;
+  count += filters.fuelTypes.length;
+  return count;
+}
 
-  const [filters, setFilters] = useState<FilterState>(initial);
-  const [openSections, setOpenSections] = useState({
-    rentalType: true,
-    availableNow: true,
-    priceRange: true,
-    carBrand: true,
-    carModel: true,
-    bodyType: true,
-    transmission: true,
-    fuelType: true,
-  });
-
-  const [brands, setBrands] = useState<Brand[]>([]);
-  const [brandPage, setBrandPage] = useState(1);
-  const [brandTotalPages, setBrandTotalPages] = useState(1);
-  const [loadingMoreBrands, setLoadingMoreBrands] = useState(false);
-  const [allModels, setAllModels] = useState<CarModel[]>([]);
-  const [bodyTypeOptions, setBodyTypeOptions] = useState<BodyType[]>([]);
-  const [fuelTypeOptions, setFuelTypeOptions] = useState<FuelType[]>([]);
-
-  const BRAND_LIMIT = 10;
-
-  useEffect(() => {
-    getBrandsAction({ page: 1, limit: BRAND_LIMIT })
-      .then((res) => {
-        setBrands(res.data ?? []);
-        setBrandPage(1);
-        setBrandTotalPages(res.meta?.totalPages ?? 1);
-      })
-      .catch(() => {});
-    getModelsAction()
-      .then((res) => setAllModels(res.data ?? []))
-      .catch(() => {});
-    getBodyTypesAction()
-      .then((res) => setBodyTypeOptions(res.data ?? []))
-      .catch(() => {});
-    getFuelTypesAction()
-      .then((res) => setFuelTypeOptions(res.data ?? []))
-      .catch(() => {});
-  }, []);
-
-  const loadMoreBrands = async () => {
-    const nextPage = brandPage + 1;
-    setLoadingMoreBrands(true);
-    try {
-      const res = await getBrandsAction({ page: nextPage, limit: BRAND_LIMIT });
-      setBrands((prev) => [...prev, ...(res.data ?? [])]);
-      setBrandPage(nextPage);
-      setBrandTotalPages(res.meta?.totalPages ?? brandTotalPages);
-    } catch {
-      // swallow
-    } finally {
-      setLoadingMoreBrands(false);
-    }
-  };
-
-  const filteredModels = filters.brandId
-    ? allModels.filter((m) => m.brandId === filters.brandId)
-    : [];
-
-  const update = (next: FilterState) => {
-    setFilters(next);
-    onFilterChange(next);
-  };
-
-  const toggleSection = (key: keyof typeof openSections) => {
-    setOpenSections((s) => ({ ...s, [key]: !s[key] }));
-  };
-
-  const reset = () => update(initial);
-
-  const togglePill = (
+interface FilterContentProps {
+  filters: FilterState;
+  openSections: Record<string, boolean>;
+  toggleSection: (key: string) => void;
+  update: (f: FilterState) => void;
+  reset: () => void;
+  brands: Brand[];
+  brandPage: number;
+  brandTotalPages: number;
+  loadingMoreBrands: boolean;
+  loadMoreBrands: () => void;
+  filteredModels: CarModel[];
+  bodyTypeOptions: BodyType[];
+  fuelTypeOptions: FuelType[];
+  togglePill: (
     category: "bodyTypes" | "transmissions" | "fuelTypes",
-    value: string,
-  ) => {
-    const list = filters[category];
-    const next = list.includes(value)
-      ? list.filter((v) => v !== value)
-      : [...list, value];
-    update({ ...filters, [category]: next });
-  };
+    value: string
+  ) => void;
+  selectBrand: (id: string) => void;
+  selectModel: (id: string) => void;
+}
 
-  const selectBrand = (id: string) => {
-    const isSame = filters.brandId === id;
-    update({
-      ...filters,
-      brandId: isSame ? undefined : id,
-      modelId: undefined,
-    });
-  };
-
-  const selectModel = (id: string) => {
-    update({ ...filters, modelId: filters.modelId === id ? undefined : id });
-  };
-
+function FilterContent({
+  filters,
+  openSections,
+  toggleSection,
+  update,
+  reset,
+  brands,
+  brandPage,
+  brandTotalPages,
+  loadingMoreBrands,
+  loadMoreBrands,
+  filteredModels,
+  bodyTypeOptions,
+  fuelTypeOptions,
+  togglePill,
+  selectBrand,
+  selectModel,
+}: FilterContentProps) {
   return (
     <div className="bg-white">
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
@@ -463,5 +421,213 @@ export function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
         )}
       </div>
     </div>
+  );
+}
+
+export function FilterSidebar({ onFilterChange, total }: FilterSidebarProps) {
+  const [filters, setFilters] = useState<FilterState>(initial);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [openSections, setOpenSections] = useState({
+    rentalType: true,
+    availableNow: true,
+    priceRange: true,
+    carBrand: true,
+    carModel: true,
+    bodyType: true,
+    transmission: true,
+    fuelType: true,
+  });
+
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [brandPage, setBrandPage] = useState(1);
+  const [brandTotalPages, setBrandTotalPages] = useState(1);
+  const [loadingMoreBrands, setLoadingMoreBrands] = useState(false);
+  const [allModels, setAllModels] = useState<CarModel[]>([]);
+  const [bodyTypeOptions, setBodyTypeOptions] = useState<BodyType[]>([]);
+  const [fuelTypeOptions, setFuelTypeOptions] = useState<FuelType[]>([]);
+
+  const BRAND_LIMIT = 10;
+
+  useEffect(() => {
+    getBrandsAction({ page: 1, limit: BRAND_LIMIT })
+      .then((res) => {
+        setBrands(res.data ?? []);
+        setBrandPage(1);
+        setBrandTotalPages(res.meta?.totalPages ?? 1);
+      })
+      .catch(() => {});
+    getModelsAction()
+      .then((res) => setAllModels(res.data ?? []))
+      .catch(() => {});
+    getBodyTypesAction()
+      .then((res) => setBodyTypeOptions(res.data ?? []))
+      .catch(() => {});
+    getFuelTypesAction()
+      .then((res) => setFuelTypeOptions(res.data ?? []))
+      .catch(() => {});
+  }, []);
+
+  const loadMoreBrands = async () => {
+    const nextPage = brandPage + 1;
+    setLoadingMoreBrands(true);
+    try {
+      const res = await getBrandsAction({ page: nextPage, limit: BRAND_LIMIT });
+      setBrands((prev) => [...prev, ...(res.data ?? [])]);
+      setBrandPage(nextPage);
+      setBrandTotalPages(res.meta?.totalPages ?? brandTotalPages);
+    } catch {
+      // swallow
+    } finally {
+      setLoadingMoreBrands(false);
+    }
+  };
+
+  const filteredModels = filters.brandId
+    ? allModels.filter((m) => m.brandId === filters.brandId)
+    : [];
+
+  const update = (next: FilterState) => {
+    setFilters(next);
+    onFilterChange(next);
+  };
+
+  const toggleSection = (key: string) => {
+    setOpenSections((s) => ({ ...s, [key]: !s[key as keyof typeof s] }));
+  };
+
+  const reset = () => update(initial);
+
+  const togglePill = (
+    category: "bodyTypes" | "transmissions" | "fuelTypes",
+    value: string
+  ) => {
+    const list = filters[category];
+    const next = list.includes(value)
+      ? list.filter((v) => v !== value)
+      : [...list, value];
+    update({ ...filters, [category]: next });
+  };
+
+  const selectBrand = (id: string) => {
+    update({
+      ...filters,
+      brandId: filters.brandId === id ? undefined : id,
+      modelId: undefined,
+    });
+  };
+
+  const selectModel = (id: string) => {
+    update({ ...filters, modelId: filters.modelId === id ? undefined : id });
+  };
+
+  const activeCount = activeFilterCount(filters);
+
+  const sharedProps: FilterContentProps = {
+    filters,
+    openSections,
+    toggleSection,
+    update,
+    reset,
+    brands,
+    brandPage,
+    brandTotalPages,
+    loadingMoreBrands,
+    loadMoreBrands,
+    filteredModels,
+    bodyTypeOptions,
+    fuelTypeOptions,
+    togglePill,
+    selectBrand,
+    selectModel,
+  };
+
+  return (
+    <>
+      {/* ── Desktop sidebar ── */}
+      <aside
+        className="hidden lg:flex w-80 shrink-0 flex-col bg-white overflow-y-auto custom-scrollbar"
+        style={{ borderRight: "1px solid #ede8df" }}
+      >
+        <FilterContent {...sharedProps} />
+      </aside>
+
+      {/* ── Mobile: floating filter button ── */}
+      <div className="lg:hidden fixed bottom-20 right-4 z-40">
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="flex items-center gap-2 bg-gray-900 text-white text-sm font-medium px-4 py-2.5 rounded-full shadow-lg"
+        >
+          <SlidersHorizontal size={15} />
+          Filters
+          {activeCount > 0 && (
+            <span className="bg-[#c9a84c] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              {activeCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* ── Mobile: bottom sheet ── */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-50"
+          onClick={() => setMobileOpen(false)}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/50" />
+
+          {/* Sheet */}
+          <div
+            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-xl flex flex-col"
+            style={{ maxHeight: "90dvh" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal size={16} className="text-gray-700" />
+                <span className="text-base font-semibold text-gray-900">
+                  Filters
+                </span>
+                {activeCount > 0 && (
+                  <span className="text-[10px] font-bold bg-[#c9a84c] text-white px-1.5 py-0.5 rounded-full">
+                    {activeCount}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center"
+              >
+                <X size={14} className="text-gray-600" />
+              </button>
+            </div>
+
+            {/* Scrollable filter body */}
+            <div className="flex-1 overflow-y-auto overscroll-contain">
+              <FilterContent {...sharedProps} />
+            </div>
+
+            {/* Footer CTA */}
+            <div className="shrink-0 px-4 py-4 border-t border-gray-100 flex gap-3 bg-white">
+              <button
+                onClick={() => {
+                  reset();
+                }}
+                className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-700"
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="flex-2 py-3 rounded-xl bg-gray-900 text-white text-sm font-medium"
+              >
+                {total !== undefined ? `Show ${total} results` : "Show results"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

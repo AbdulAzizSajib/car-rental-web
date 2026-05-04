@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
   Home,
   Car,
@@ -18,24 +18,25 @@ import {
   ChevronLeft,
   ChevronRight,
   LucideLayoutDashboard,
-} from 'lucide-react';
-import { logoutAction } from '@/src/services/auth/logout.action';
-import { getAuthStatusAction } from '@/src/services/auth/getAuthStatus.action';
+} from "lucide-react";
+import { logoutAction } from "@/src/services/auth/logout.action";
+import { getAuthStatusAction } from "@/src/services/auth/getAuthStatus.action";
+import Image from "next/image";
 
 const mainNav = [
-  { href: '/', label: 'Home', icon: Home },
-  { href: '/vehicles', label: 'Vehicles', icon: Car },
-  { href: '/bookings', label: 'Bookings', icon: CalendarCheck },
-  { href: '/favourites', label: 'Favourites', icon: Heart },
-  { href: '/payments', label: 'Payments', icon: CreditCard },
-  { href: '/notifications', label: 'Notifications', icon: Bell },
-  { href: '/chat', label: 'Chat', icon: MessageCircle },
+  { href: "/", label: "Home", icon: Home },
+  { href: "/vehicles", label: "Vehicles", icon: Car },
+  { href: "/bookings", label: "Bookings", icon: CalendarCheck },
+  { href: "/favourites", label: "Favourites", icon: Heart },
+  { href: "/payments", label: "Payments", icon: CreditCard },
+  { href: "/notifications", label: "Notifications", icon: Bell },
+  { href: "/chat", label: "Chat", icon: MessageCircle },
 ];
 
 const bottomNav = [
-  { href: '/license', label: 'License', icon: FileKey },
-  { href: '/support', label: 'Support', icon: LifeBuoy },
-  { href: '/dashboard', label: 'Dashboard', icon: LucideLayoutDashboard },
+  { href: "/license", label: "License", icon: FileKey },
+  { href: "/support", label: "Support", icon: LifeBuoy },
+  { href: "/dashboard", label: "Dashboard", icon: LucideLayoutDashboard },
 ];
 
 interface SidebarNavbarProps {
@@ -43,7 +44,10 @@ interface SidebarNavbarProps {
   onToggle?: () => void;
 }
 
-export function SidebarNavbar({ collapsed = false, onToggle }: SidebarNavbarProps) {
+export function SidebarNavbar({
+  collapsed = false,
+  onToggle,
+}: SidebarNavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
@@ -57,12 +61,12 @@ export function SidebarNavbar({ collapsed = false, onToggle }: SidebarNavbarProp
     setLoggingOut(true);
     await logoutAction();
     setIsAuthenticated(false);
-    router.push('/login');
+    router.push("/login");
   };
 
   const isActive = (href: string) => {
-    if (href === '/') return pathname === '/';
-    return pathname === href || pathname?.startsWith(href + '/');
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname?.startsWith(href + "/");
   };
 
   const renderItem = (item: (typeof mainNav)[number]) => {
@@ -74,16 +78,14 @@ export function SidebarNavbar({ collapsed = false, onToggle }: SidebarNavbarProp
         href={item.href}
         title={collapsed ? item.label : undefined}
         className={`flex items-center gap-3 rounded-full text-sm transition-colors ${
-          collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'
+          collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2.5"
         } ${
-          active
-            ? 'bg-[#c9a84c] text-white'
-            : 'text-gray-700 hover:bg-gray-100'
+          active ? "bg-[#c9a84c] text-white" : "text-gray-700 hover:bg-gray-100"
         }`}
       >
         <Icon
           size={18}
-          className={`${active ? 'text-white' : 'text-gray-600'} shrink-0`}
+          className={`${active ? "text-white" : "text-gray-600"} shrink-0`}
         />
         {!collapsed && <span className="font-medium">{item.label}</span>}
       </Link>
@@ -92,14 +94,14 @@ export function SidebarNavbar({ collapsed = false, onToggle }: SidebarNavbarProp
 
   return (
     <aside
-      className={`bg-[#faf8f4] border-r border-gray-200 flex flex-col fixed left-0 top-0 bottom-0 h-screen z-30 transition-[width] duration-200 ${
-        collapsed ? 'w-16' : 'w-50'
+      className={`bg-[#faf8f4] border-r border-gray-200 hidden md:flex flex-col fixed left-0 top-0 bottom-0 h-screen z-30 transition-[width] duration-200 ${
+        collapsed ? "w-16" : "w-50"
       }`}
     >
       {/* Floating toggle button */}
       <button
         onClick={onToggle}
-        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         className="absolute -right-3 top-4 w-6 h-6 rounded-full bg-white border border-gray-200 hover:border-gray-300 shadow-sm flex items-center justify-center text-gray-500 hover:text-gray-900 z-40 transition-colors"
       >
         {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
@@ -108,10 +110,10 @@ export function SidebarNavbar({ collapsed = false, onToggle }: SidebarNavbarProp
       {/* Logo */}
       <div
         className={`py-5 flex items-center gap-2 ${
-          collapsed ? 'justify-center px-2' : 'px-5'
+          collapsed ? "justify-center px-2" : "px-5"
         }`}
       >
-        <div className="w-6 h-6 bg-gray-900 rounded flex items-center justify-center shrink-0">
+        {/* <div className="w-6 h-6 bg-gray-900 rounded flex items-center justify-center shrink-0">
           <svg
             width="14"
             height="14"
@@ -127,7 +129,9 @@ export function SidebarNavbar({ collapsed = false, onToggle }: SidebarNavbarProp
               strokeLinejoin="round"
             />
           </svg>
-        </div>
+        </div> */}
+        <Image src="/logo.png" className="" alt="Logo" width={40} height={40} />
+
         {!collapsed && (
           <span className="text-[13px] font-bold tracking-wider text-gray-900 whitespace-nowrap">
             AUTO ULTIMATE
@@ -147,20 +151,24 @@ export function SidebarNavbar({ collapsed = false, onToggle }: SidebarNavbarProp
           <button
             onClick={handleLogout}
             disabled={loggingOut}
-            title={collapsed ? 'Logout' : undefined}
+            title={collapsed ? "Logout" : undefined}
             className={`flex items-center gap-3 rounded-full text-sm transition-colors text-gray-700 hover:bg-gray-100 disabled:opacity-50 ${
-              collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'
+              collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2.5"
             }`}
           >
             <LogOut size={18} className="text-gray-600 shrink-0" />
-            {!collapsed && <span className="font-medium">{loggingOut ? 'Logging out…' : 'Logout'}</span>}
+            {!collapsed && (
+              <span className="font-medium">
+                {loggingOut ? "Logging out…" : "Logout"}
+              </span>
+            )}
           </button>
         ) : (
           <Link
             href="/login"
-            title={collapsed ? 'Login' : undefined}
+            title={collapsed ? "Login" : undefined}
             className={`flex items-center gap-3 rounded-full text-sm transition-colors text-gray-700 hover:bg-gray-100 ${
-              collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'
+              collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2.5"
             }`}
           >
             <LogIn size={18} className="text-gray-600 shrink-0" />
